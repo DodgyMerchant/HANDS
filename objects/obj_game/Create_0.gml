@@ -14,16 +14,21 @@ all self plays -points
 
 */
 
-
 randomize();
-show_debug_overlay(true);
 
+global.Debug = true;
+show_debug_overlay(global.Debug);
+
+
+#region General
 global.Width = 300;
 global.Height = 200;
 room_width = global.Width;
 room_height = global.Height;
+var _times = 2;
+display_set_gui_size(global.Width * _times,global.Height * _times);
 
-display_set_gui_size(global.Width,global.Height);
+global.Player_num = 2;
 
 enum HAND_TYPE
 	{
@@ -35,14 +40,11 @@ enum HAND_TYPE
 global.Game_speed = game_get_speed(gamespeed_fps);
 global.Cam = view_camera[0];
 global.Layer_hand = layer_get_id("Hands");
+global.Layer_score = layer_get_id("Score");
 global.Layer_back = layer_get_id("Back_hands");
 
 global.Game_point_x = global.Width/2;
 global.Game_point_y = global.Height/2;
-global.LongestDistance = point_distance(0,0,global.Game_point_x,global.Game_point_y);
-global.Circle_hand_offset = 20;
-
-global.Player_num = 2;
 
 func_window_name = function()
 	{
@@ -71,13 +73,26 @@ func_menu_create = function()
 	
 	}
 
+#endregion
 #region game rules
 
-global.Game_Score_needed = 2;
+//wins
 global.Game_Wins_needed = 2;
 global.Game_Wins_against = true; //if a win counts agains your oppnents win | one player need 2 wins and the player 0 to win
 
-global.Rule_Timer = false;
+//score
+enum SCORE_TYPE
+	{
+	st_points,
+	st_health
+	}
+//global.Rule_Score_type = SCORE_TYPE.st_points;
+global.Rule_Score_type = SCORE_TYPE.st_health;
+global.Game_Score_needed = 2;
+global.Rule_Health_max = 10;
+
+//timer
+global.Rule_Timer = true;
 global.Rule_Timer_Time = global.Game_speed * 5;
 
 enum RULE_HAND_SELF
@@ -88,14 +103,6 @@ enum RULE_HAND_SELF
 	}
 global.Rule_Hand_self = RULE_HAND_SELF.spikey; //how hands react to self plays
 
-enum SCORE_TYPE
-	{
-	st_points,
-	st_health
-	}
-global.Rule_Score_type = SCORE_TYPE.st_points;
-global.Rule_Health_max = 10;
-
 
 #endregion
 #region score and win
@@ -104,6 +111,11 @@ global.Game_Score = 0;//counts the players scores | if type points is a value	if
 global.Game_Wins = 0; //counts the players wins | if rule win gainst is true then is a var   if rule agains is false   is a array
 
 //disp
+/*
+all _t here is seen in a way that it describes the player who is winning
+f.e.  player 1 has low health ==  high Score_t and Score_t_sign == 0
+
+*/
 global.Game_Score_t	= 0;		//percentual value of score	/display helper
 global.Game_Wins_t	= 0;		//percentual value of win		/display helper
 global.Game_Score_t_sign = 0;	//value multiplier for who is winning
@@ -113,30 +125,48 @@ global.Game_Wins_t_sign	= 0;	//
 //score display
 //points
 score_points_sep = 35;
-score_points_inactive_y = room_height - 2;
+score_points_inactive_y = room_height - 20;
 score_points_active_y = room_height - 35;
 
-
+score_points_health_offset = 20;
 
 
 func_score_setup = function()
 	{
 	switch(global.Rule_Score_type)
 		{
+		#region health
 		case SCORE_TYPE.st_health:
 			
 			global.Game_Score = array_create(global.Player_num,global.Rule_Health_max);
 			
 			#region create score hands
-			for (var i=0;i<global.Player_num;i++)
-				with(instance_create_layer(_x,score_points_inactive_y,layer,obj_score_health))
-					{
-					player = i;
-					xend = i * room_width;
-					}
+			/*
+			FOR 2 PLAYERS ONLY
+			change for more players
+			
+			*/
+			var _offset = 20;
+			with(instance_create_layer(global.Game_point_x - score_points_health_offset, score_points_inactive_y, global.Layer_score, obj_score_health))
+				{
+				player = 0;
+				xend = - _offset;
+				xend_disp = 0;
+				}
+			with(instance_create_layer(global.Game_point_x + score_points_health_offset, score_points_inactive_y, global.Layer_score, obj_score_health))
+				{
+				player = 1;
+				xend = room_width + _offset;
+				xend_disp = room_width;
+				}
 			#endregion
 			
+			//update score in score health object
+			with(obj_score_health) func_score_health_update_player_score();
+			
 		break;
+		#endregion
+		#region score
 		case SCORE_TYPE.st_points:
 			
 			global.Game_Score = 0;
@@ -148,7 +178,7 @@ func_score_setup = function()
 				{
 				_x = global.Game_point_x + i * score_points_sep;
 				
-				with(instance_create_layer(_x,score_points_inactive_y,layer,obj_score_points))
+				with(instance_create_layer(_x,score_points_inactive_y,global.Layer_score,obj_score_points))
 					{
 					number = i;
 					active_pos = other.score_points_active_y;
@@ -156,10 +186,9 @@ func_score_setup = function()
 					}
 				}
 			
-			func_game_start();
-			
 			#endregion
 		break;
+		#endregion
 		}
 	}
 func_score_reset = function()
@@ -178,6 +207,11 @@ func_score_reset = function()
 func_score_cleanup = function()
 	{
 	global.Game_Score = 0;
+	
+	if global.Rule_Score_type == SCORE_TYPE.st_points
+		with(obj_score_points) func_game_end(); 
+	else
+		with(obj_score_health) func_game_end(); 
 	}
 func_win_setup = function()
 	{
@@ -206,37 +240,93 @@ func_win_cleanup = function()
 	{
 	global.Game_Wins = 0;
 	}
+
+//game
+func_game_score = function(_player,_outcome)
+	{
+	/*
+	outcome is confirmed to be != -1
+	*/
+	switch(global.Rule_Score_type)
+		{
+		case SCORE_TYPE.st_points:
+			//2 player specific
+			
+			// p | o | result | expected
+			//---|---|--------|----------
+			// 0 | 1 |	0	  | -1
+			//---|---|--------|----------
+			// 1 | 1 |	1	  | +1
+			//---|---|--------|----------
+			// 0 | 0 |	1	  | +1
+			//---|---|--------|----------
+			// 1 | 0 |	0	  | -1
+			//---|---|--------|----------
+			
+			global.Game_Score += Func_t_span( _player == _outcome );
+			
+			////////////maybe make something like this for  points
+			//update health score hand val
+			//with(obj_score_health) func_score_health_update_player_score();
+		break;
+		case SCORE_TYPE.st_health:
+			//2 player specific
+			
+			// p | o | result | expected
+			//---|---|--------|----------
+			// 0 | 1 |	1	  | 1
+			//---|---|--------|----------
+			// 1 | 1 |	0	  | 0
+			//---|---|--------|----------
+			// 0 | 0 |	0	  | 0
+			//---|---|--------|----------
+			// 1 | 0 |	1	  | 1
+			//---|---|--------|----------
+			
+			global.Game_Score[_player != _outcome] -= 1;
+			
+			//update health score hand val
+			with(obj_score_health) func_score_health_update_player_score();
+		break;
+		}
+	
+	
+	}
 func_game_win = function(_player)
 	{
 	show_debug_message("Win! player: "+string(_player));
 	var _check;
-	if global.Game_Wins_against
+	switch( global.Game_Wins_against)
 		{
-		if _player == 0
-			global.Game_Wins--;
-		else
-			global.Game_Wins++;
-		
-		_check = abs(global.Game_Wins);
-		}
-	else
-		{
-		global.Game_Wins[_player]++;
-		
-		_check = global.Game_Wins[_player];
+		#region against
+		case true:
+			
+			// p == 0 ==> -1	|  p == 1 ==> +1
+			global.Game_Wins += Func_t_span(_player);
+			_check = abs(global.Game_Wins);
+		break;
+		#endregion
+		#region seperate
+		case false:
+			
+			global.Game_Wins[_player]++;
+			_check = global.Game_Wins[_player];
+		break;
+		#endregion
 		}
 	
 	//check for win win
 	if _check >= global.Game_Wins_needed
 		{
-		func_game_win_win(_player);
+		return func_game_win_win(_player);
 		}
 	
-	func_game_reset();
+	//reset stuff
+	func_game_round_reset();
 	}
 func_game_win_win = function(_player)
 	{
-	show_debug_message("Win WIn!!! player: "+string(_player));
+	show_debug_message("Win Win!!! player: "+string(_player));
 	/*
 	
 	global.Game_Wins_against
@@ -247,83 +337,8 @@ func_game_win_win = function(_player)
 	func_game_end();
 	}
 
-#endregion
-#region rule timer
-
-timer_start = false;
-timer_count = 0;
-timer_ang_disp = 0;
-//timer_ang_speed = max(360 / global.Rule_Timer_Time, 360/20);
-timer_ang_speed = 5; // distance / x
-timer_disp_length = 50;
-
-global.Timer_t = 0; // a variable to react to
-
-func_game_rule_timer_up = function()//when timer runs out
-	{
-	show_debug_message("Times Up");
-	/*
-	what happens when the timer runs out
-	
-	*/
-	
-	
-	func_game_rule_timer_reset();
-	}
-func_game_rule_timer_reset = function()//var reset
-	{
-	timer_count = 0;
-	
-	
-	}
-
-
-
-func_timer_reset = function()//var reset
-	{
-	timer_count = 0;
-	timer_ang_disp = 0;
-	global.Timer_t = 0;
-	}
-
 
 #endregion
-#region hand surface
-
-global.Hand_surface = surface_create(300,200);
-hand_surf_a = 0.1;
-hand_surf_erase_a = 1;
-hand_surf_erase = false;
-var _speed = 30;
-hand_surf_erase_a_decay = hand_surf_erase_a/_speed;
-
-func_handsurf_erase_begin = function()
-	{
-	hand_surf_erase = true;
-	}
-func_handsurf_draw = function()
-	{
-	if hand_surf_erase
-		hand_surf_erase_a = max(hand_surf_erase_a - hand_surf_erase_a_decay, 0);
-	
-	//reset if a is 0
-	if hand_surf_erase_a == 0
-		{
-		surface_set_target(global.Hand_surface);
-		draw_clear_alpha(c_white,0);
-		surface_reset_target();
-		
-		//reset var
-		hand_surf_erase = false;
-		hand_surf_erase_a = 1;
-		}
-	
-	draw_surface_ext(global.Hand_surface,0,0,1,1,0,-1,hand_surf_a * hand_surf_erase_a);
-	}
-
-
-#endregion
-
 #region game
 
 game_on = false;
@@ -339,6 +354,7 @@ func_game_setup = function()//sets up the game
 	
 	func_score_setup();
 	func_win_setup();//sets up win variable
+	func_timer_setup();
 	}
 func_game_start = function()//start the game play mode
 	{
@@ -357,7 +373,7 @@ func_game_stop = function()//stops the game play mode
 	if global.Rule_Timer
 		timer_start = false;
 	}
-func_game_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
+func_game_round_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
 	{
 	with(obj_hand) func_end();
 	
@@ -368,7 +384,7 @@ func_game_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
 	func_score_reset();
 	
 	//timer
-	func_timer_reset();
+	//func_timer_reset(); // no reset more setup
 	//hand surface
 	func_handsurf_erase_begin();
 	
@@ -378,13 +394,10 @@ func_game_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
 func_game_end = function() //end the game play mode return to menu
 	{
 	//reset vars
-	func_game_reset();
+	func_game_round_reset();
 	
 	//other
 	game_on = false;
-	
-	//with(obj_hand) func_game_end(); done in reset
-	with(obj_score_points) func_game_end(); 
 	
 	//score and win cleanup
 	func_score_cleanup();
@@ -393,6 +406,14 @@ func_game_end = function() //end the game play mode return to menu
 	
 	func_menu_create();
 	}
+
+game_on_t = 0;
+game_on_time = global.Game_speed * 1;
+game_on_count = 0;
+
+//hand
+global.Circle_hand_offset = 20; //offset for game hands
+global.LongestDistance = point_distance(0,0,global.Game_point_x,global.Game_point_y); //longest distance between game point and screen edge
 
 func_hand_create = function(_type,_x,_y)
 	{
@@ -414,6 +435,48 @@ func_hand_create = function(_type,_x,_y)
 	return _inst;
 	}
 
+func_type_logic = function(_attacker,_target)	//returns true if attacker wins and false if not /-1 for nothing
+	{
+	switch(_attacker)
+		{
+		case HAND_TYPE.open:
+			switch(_target)
+				{
+				case HAND_TYPE.point:
+					return false;//open looses to poin
+				break;
+				case HAND_TYPE.fist:
+					return true;//open wins over fist
+				break;
+				}
+		break;
+		case HAND_TYPE.point:
+			switch(_target)
+				{
+				case HAND_TYPE.fist:
+					return false;//point looses fist 
+				break;
+				case HAND_TYPE.open:
+					return true;//point wins over open
+				break;
+				}
+		break;
+		case HAND_TYPE.fist:
+			switch(_target)
+				{
+				case HAND_TYPE.open:
+					return false;//fist looses to open
+				break;
+				case HAND_TYPE.point:
+					return true;//fist wins over point
+				break;
+				}
+		break;
+		}
+	
+	return -1;
+	}
+
 #region player action
 
 action_type = -1; //the last type of action taken
@@ -432,6 +495,8 @@ func_game_player_action = function(_type,_player)
 		var _dist = global.LongestDistance + 10;
 		
 		var _dir;
+		#region get point creation
+		
 		if _player == 0//if player one
 			{
 			_dir = (180 - _type_angle) + (_type * _type_angle)	+ random_range(-_type_region,_type_region);
@@ -440,6 +505,7 @@ func_game_player_action = function(_type,_player)
 			{
 			_dir = (0 + _type_angle) - (_type * _type_angle)	- random_range(-_type_region,_type_region);
 			}
+		#endregion
 		
 		var _x = global.Game_point_x + lengthdir_x(_dist,_dir);
 		var _y = global.Game_point_y + lengthdir_y(_dist,_dir);
@@ -486,10 +552,11 @@ func_game_player_action = function(_type,_player)
 
 func_game_player_action_hand_eval = function(_id,_type,_player)
 	{
+
 	#region time
 	//reset time
-	if global.Rule_Timer
-		func_game_rule_timer_reset();
+	
+	func_game_rule_timer_reset();
 	
 	#endregion
 	
@@ -528,10 +595,7 @@ func_game_player_action_hand_eval = function(_id,_type,_player)
 		
 		if _outcome != -1
 			{
-			if (_player==0 and _outcome) or (_player==1 and !_outcome)
-				global.Game_Score--;
-			else if (_player==0 and !_outcome) or (_player==1 and _outcome)
-				global.Game_Score++;
+			func_game_score(_player,_outcome);
 			}
 		
 		//dim old hand
@@ -543,49 +607,128 @@ func_game_player_action_hand_eval = function(_id,_type,_player)
 	action_inst = _id;
 	}
 
-func_type_logic = function(_attacker,_target)	//retuirns true if attacker wins /-1 for nothing
+#endregion
+#endregion
+#region rule timer
+
+timer_start = false;
+timer_count = 0;
+timer_disp_x = 0;
+timer_disp_y = 0;
+
+timer_angle_tick_channel = animcurve_get_channel(ac_game_rule_timer, "Tick");
+
+timer_tick_num = global.Rule_Timer_Time / global.Game_speed;
+//timer_tick_num = 12;
+timer_tick_val = global.Rule_Timer_Time / timer_tick_num;
+timer_tick_tval = 1 / timer_tick_num;
+timer_tick_ang = 360 / timer_tick_num;
+
+//disp vals
+timer_disp_length = 50;
+timer_disp_length_inactive = 30;
+timer_hand_sway_val = 10;
+timer_hand_sway = 0;
+timer_hand_tide_val = 5;
+timer_hand_tide = 0;
+
+//display helpers
+global.Timer_t = 0;			// t for the whole time
+global.Timer_index = 0;		//number that represents which last full tick has been passed  f.e. tick_num = 4; _t = 0.3; _index == 1;
+global.Timer_index_t = 0;	// t in the current tick space
+global.Timer_last_t = 0;	// t in the last tick space
+
+
+func_game_rule_timer_up = function()//when timer runs out
 	{
-	switch(_attacker)
-		{
-		case HAND_TYPE.open:
-			switch(_target)
-				{
-				case HAND_TYPE.point:
-					return false;//open looses to poin
-				break;
-				case HAND_TYPE.fist:
-					return true;//open wins over fist
-				break;
-				}
-		break;
-		case HAND_TYPE.point:
-			switch(_target)
-				{
-				case HAND_TYPE.fist:
-					return false;//point looses fist 
-				break;
-				case HAND_TYPE.open:
-					return true;//point wins over open
-				break;
-				}
-		break;
-		case HAND_TYPE.fist:
-			switch(_target)
-				{
-				case HAND_TYPE.open:
-					return false;//fist looses to open
-				break;
-				case HAND_TYPE.point:
-					return true;//fist wins over point
-				break;
-				}
-		break;
-		}
+	show_debug_message("Times Up");
+	/*
+	what happens when the timer runs out
 	
-	return -1;
+	*/
+	
+	
+	func_game_rule_timer_reset();
+	}
+func_game_rule_timer_reset = function()//var reset
+	{
+	if global.Rule_Timer
+		timer_count = 0;
 	}
 
+func_timer_setup = function()
+	{
+	if global.Rule_Timer
+		{
+		
+		
+		timer_count = 0;
+		global.Timer_t = 0;
+		
+		
+		}
+	}
+func_timer_reset = function()//complete var reset 
+	{
+	timer_count = 0;
+	global.Timer_t = 0;
+	//func_timer_angle_calc(0);
+	}
+
+func_timer_angle_calc = function(_count)
+	{
+	var _shiver = global.Timer_t * 1;
+	
+	var _time_t = ((_count div timer_tick_val) * timer_tick_val) / global.Rule_Timer_Time;
+	var _tick_t = timer_tick_tval * animcurve_channel_evaluate(timer_angle_tick_channel, (_count mod timer_tick_val) / timer_tick_val);
+	var _ang =  360 * (_time_t + _tick_t) + 90 + (timer_hand_sway * func_timer_arm_close_precision(round(global.Timer_t / timer_tick_tval)));
+	var _leng = timer_disp_length * game_on_t;
+	timer_disp_x = global.Game_point_x + lengthdir_x(_leng,_ang) + random_range(-_shiver,_shiver);
+	timer_disp_y = global.Game_point_y + lengthdir_y(_leng,_ang) + random_range(-_shiver,_shiver);
+	}
+
+func_timer_arm_close_precision = function(i) //0 - 1	//0 when arm is on the given i index  1 when arm is one tick space or more away
+	{
+	return (min(abs((i / timer_tick_num ) - global.Timer_t), timer_tick_tval) / timer_tick_tval);
+	}
+
+func_timer_angle_calc(0);
+
 #endregion
+#region hand surface
+
+global.Hand_surface = surface_create(300,200);
+hand_surf_a = 0.1;
+hand_surf_erase_a = 1;
+hand_surf_erase = false;
+var _speed = 30;
+hand_surf_erase_a_decay = hand_surf_erase_a/_speed;
+
+func_handsurf_erase_begin = function()
+	{
+	hand_surf_erase = true;
+	}
+func_handsurf_draw = function()
+	{
+	if hand_surf_erase
+		hand_surf_erase_a = max(hand_surf_erase_a - hand_surf_erase_a_decay, 0);
+	
+	//reset if a is 0
+	if hand_surf_erase_a == 0
+		{
+		surface_set_target(global.Hand_surface);
+		draw_clear_alpha(c_white,0);
+		surface_reset_target();
+		
+		//reset var
+		hand_surf_erase = false;
+		hand_surf_erase_a = 1;
+		}
+	
+	draw_surface_ext(global.Hand_surface,0,0,1,1,0,-1,hand_surf_a * hand_surf_erase_a);
+	}
+
+
 #endregion
 #region player input
 
@@ -681,7 +824,7 @@ func_input_react_func = function(_func) //go through all done inputs and execute
 	}
 
 #endregion
-#region frame create
+#region window frame create
 
 frame_border = 20;
 var _surf = surface_create(global.Width + frame_border*2,global.Height + frame_border*2);
@@ -811,24 +954,6 @@ layer_background_blend(_back_id,c_white);
 layer_x(global.Layer_back, 0);
 layer_y(global.Layer_back, 0);
 */
-background_swing = false;
-
-background_surf_w = global.Width*2;
-background_surf_h = global.Height*2;
-background_surface1 = surface_create(background_surf_w,background_surf_h);
-background_surface2 = surface_create(background_surf_w,background_surf_h);
-background_surface_display = 0;
-
-backgound_time = global.Game_speed * 0.1;
-backgound_time_count = 0;
-backgound_update = true;
-backgound_time_t = 0;
-
-background_scale = .9;
-background_alpha = .8;
-
-
-background_circle_dist = 200;
 
 
 

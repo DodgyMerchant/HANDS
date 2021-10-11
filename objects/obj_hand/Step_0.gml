@@ -5,7 +5,6 @@
 
 if tics == -1
 	{
-	show_debug_message("calc")
 	//calc tics
 	tics = point_distance(x,y,dest_x,dest_y) / spd;
 	tics_count = 0;

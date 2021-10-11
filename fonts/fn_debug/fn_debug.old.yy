@@ -131,7 +131,7 @@
     "path": "hands.yyp",
   },
   "resourceVersion": "1.0",
-  "name": "fn",
+  "name": "fn_debug",
   "tags": [],
   "resourceType": "GMFont",
 }
