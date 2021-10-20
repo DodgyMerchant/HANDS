@@ -6,18 +6,31 @@ convert frame to working hands
 make transition from it
 background see of hands
 
+
+
 create wins visual
 create win win
 
-Rules:
-all self plays -points
 
+
+//make timer back reverse
+
+new rule: timer against //timer diesnt get reset but reversed, and if it runs out on your side you get -score
+
+
+
+
+global.Game_Wins_needed		// val
+global.Game_Wins_against	// bool
+global.Rule_Score_type		// SCORE_TYPE
+global.Game_Score_needed	// val
+global.Rule_Health_max		// val
+global.Rule_Timer			// bool
+global.Rule_Timer_Time		// time
+global.Rule_Hand_self		// RULE_HAND_SELF
 */
 
 randomize();
-
-global.Debug = true;
-show_debug_overlay(global.Debug);
 
 
 #region General
@@ -25,8 +38,7 @@ global.Width = 300;
 global.Height = 200;
 room_width = global.Width;
 room_height = global.Height;
-var _times = 2;
-display_set_gui_size(global.Width * _times,global.Height * _times);
+display_set_gui_size(global.Width,global.Height);
 
 global.Player_num = 2;
 
@@ -41,10 +53,18 @@ global.Game_speed = game_get_speed(gamespeed_fps);
 global.Cam = view_camera[0];
 global.Layer_hand = layer_get_id("Hands");
 global.Layer_score = layer_get_id("Score");
-global.Layer_back = layer_get_id("Back_hands");
+global.Layer_menus = layer_get_id("Menus");
+//global.Layer_back = layer_get_id("Back_hands");
 
 global.Game_point_x = global.Width/2;
 global.Game_point_y = global.Height/2;
+
+
+func_game_point_update = function(_xoff,_yoff)
+	{
+	global.Game_point_x = global.Width/2	+ _xoff;
+	global.Game_point_y = global.Height/2	+ _yoff;
+	}
 
 func_window_name = function()
 	{
@@ -66,11 +86,19 @@ func_window_name = function()
 
 func_menu_create = function()
 	{
-	instance_create_layer(0,0,layer,obj_menu);
+	instance_create_layer(0,0,global.Layer_menus,obj_menu);
 	
 	
-	
-	
+	}
+func_menu_pause_create = function()
+	{
+	if !instance_exists(obj_menu_pause)
+		instance_create_layer(0,0,global.Layer_menus,obj_menu_pause);
+	else
+		with(obj_menu_pause)
+			{
+			active = true;
+			}
 	}
 
 #endregion
@@ -103,6 +131,23 @@ enum RULE_HAND_SELF
 	}
 global.Rule_Hand_self = RULE_HAND_SELF.spikey; //how hands react to self plays
 
+function Func_game_rule_reset()
+	{
+	//wins
+	global.Game_Wins_needed = 2;
+	global.Game_Wins_against = true; //if a win counts agains your oppnents win | one player need 2 wins and the player 0 to win
+	
+	//score
+	global.Rule_Score_type = SCORE_TYPE.st_health;
+	global.Game_Score_needed = 2;
+	global.Rule_Health_max = 10;
+	
+	//timer
+	global.Rule_Timer = true;
+	global.Rule_Timer_Time = global.Game_speed * 5;
+	
+	global.Rule_Hand_self = RULE_HAND_SELF.spikey; //how hands react to self plays
+	}
 
 #endregion
 #region score and win
@@ -128,9 +173,6 @@ score_points_sep = 35;
 score_points_inactive_y = room_height - 20;
 score_points_active_y = room_height - 35;
 
-score_points_health_offset = 20;
-
-
 func_score_setup = function()
 	{
 	switch(global.Rule_Score_type)
@@ -146,27 +188,75 @@ func_score_setup = function()
 			change for more players
 			
 			*/
+			#region // horizontal bars	NOT ACTIVE
+			/* 
 			var _offset = 20;
-			with(instance_create_layer(global.Game_point_x - score_points_health_offset, score_points_inactive_y, global.Layer_score, obj_score_health))
+			var _disp_offset = 50;
+			var _y = room_height - _offset;
+			with(instance_create_layer(-_disp_offset, _y, global.Layer_score, obj_score_health))
 				{
 				player = 0;
-				xend = - _offset;
-				xend_disp = 0;
+				
+				x2 = global.Game_point_x - _offset;
+				y2 = y;
+				x1 = _offset;
+				y1 = y;
+				xdisp = x;
+				ydisp = y;
 				}
-			with(instance_create_layer(global.Game_point_x + score_points_health_offset, score_points_inactive_y, global.Layer_score, obj_score_health))
+			with(instance_create_layer(room_width + _disp_offset, _y, global.Layer_score, obj_score_health))
 				{
 				player = 1;
-				xend = room_width + _offset;
-				xend_disp = room_width;
+				
+				x2 = global.Game_point_x + _offset;
+				y2 = y;
+				x1 = room_width - _offset;
+				y1 = y;
+				xdisp = x;
+				ydisp = y;
 				}
 			#endregion
-			
+			//*/
+			#endregion
+			#region // vertical bars	ACTIVE
+			//* 
+			var _y_end =		50;
+			var _y_start =		room_height - 20;
+			var _y_offscreen =	room_height + 50;
+			var _x = 25;
+			with(instance_create_layer(_x, _y_offscreen, global.Layer_score, obj_score_health))
+				{
+				player = 0;
+				turn = false;
+				
+				x2 = x;
+				y2 = _y_end;
+				x1 = x;
+				y1 = _y_start;
+				xdisp = x;
+				ydisp = _y_offscreen;
+				}
+			with(instance_create_layer(room_width - _x, _y_offscreen, global.Layer_score, obj_score_health))
+				{
+				player = 1;
+				turn = false;
+				
+				x2 = x;
+				y2 = _y_end;
+				x1 = x;
+				y1 = _y_start;
+				xdisp = x;
+				ydisp = _y_offscreen;
+				}
+			#endregion
+			//*/
+			#endregion
 			//update score in score health object
 			with(obj_score_health) func_score_health_update_player_score();
 			
 		break;
 		#endregion
-		#region score
+		#region points
 		case SCORE_TYPE.st_points:
 			
 			global.Game_Score = 0;
@@ -198,6 +288,9 @@ func_score_reset = function()
 		case SCORE_TYPE.st_health:
 			for(var i=0;i<global.Player_num;i++)
 				global.Game_Score[i] = global.Rule_Health_max;
+			
+			//update score in score health object
+			with(obj_score_health) func_score_health_update_player_score();
 		break;
 		case SCORE_TYPE.st_points:
 			global.Game_Score = 0;
@@ -251,7 +344,7 @@ func_game_score = function(_player,_outcome)
 		{
 		case SCORE_TYPE.st_points:
 			//2 player specific
-			
+			#region info
 			// p | o | result | expected
 			//---|---|--------|----------
 			// 0 | 1 |	0	  | -1
@@ -262,7 +355,7 @@ func_game_score = function(_player,_outcome)
 			//---|---|--------|----------
 			// 1 | 0 |	0	  | -1
 			//---|---|--------|----------
-			
+			#endregion
 			global.Game_Score += Func_t_span( _player == _outcome );
 			
 			////////////maybe make something like this for  points
@@ -271,7 +364,7 @@ func_game_score = function(_player,_outcome)
 		break;
 		case SCORE_TYPE.st_health:
 			//2 player specific
-			
+			#region info
 			// p | o | result | expected
 			//---|---|--------|----------
 			// 0 | 1 |	1	  | 1
@@ -282,7 +375,7 @@ func_game_score = function(_player,_outcome)
 			//---|---|--------|----------
 			// 1 | 0 |	1	  | 1
 			//---|---|--------|----------
-			
+			#endregion
 			global.Game_Score[_player != _outcome] -= 1;
 			
 			//update health score hand val
@@ -290,6 +383,7 @@ func_game_score = function(_player,_outcome)
 		break;
 		}
 	
+	func_cam_shock_active();
 	
 	}
 func_game_win = function(_player)
@@ -347,14 +441,13 @@ game_active = false; //if player can create hands
 func_game_setup = function()//sets up the game
 	{
 	game_on = true;
-	#region close menu
-	//destroy menu
-	with(obj_menu){instance_destroy();}
-	#endregion
 	
 	func_score_setup();
 	func_win_setup();//sets up win variable
 	func_timer_setup();
+	
+	//start game timer to start game
+	func_countdown_start();//activate countdown
 	}
 func_game_start = function()//start the game play mode
 	{
@@ -365,6 +458,10 @@ func_game_start = function()//start the game play mode
 		timer_start = true;
 		
 		}
+	
+	//destroy pause menu
+	if instance_exists(obj_menu_pause)
+		with(obj_menu_pause) {instance_destroy();}
 	}
 func_game_stop = function()//stops the game play mode
 	{
@@ -372,6 +469,13 @@ func_game_stop = function()//stops the game play mode
 	//timer
 	if global.Rule_Timer
 		timer_start = false;
+	
+	//cam
+	//kick return
+	func_cam_kick_return();
+	
+	//pause menu
+	func_menu_pause_create();
 	}
 func_game_round_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
 	{
@@ -390,6 +494,10 @@ func_game_round_reset = function() //resets the vars to    //MUST BE PLAYABLE ST
 	
 	//for fun
 	func_window_name();
+	
+	//cam
+	//kick
+	func_cam_kick_return();
 	}
 func_game_end = function() //end the game play mode return to menu
 	{
@@ -403,7 +511,7 @@ func_game_end = function() //end the game play mode return to menu
 	func_score_cleanup();
 	func_win_cleanup();
 	
-	
+	//menu create
 	func_menu_create();
 	}
 
@@ -480,7 +588,8 @@ func_type_logic = function(_attacker,_target)	//returns true if attacker wins an
 #region player action
 
 action_type = -1; //the last type of action taken
-action_inst = -1;
+action_inst = -1; //the associated hand inst
+action_player = -1;//the player that played last action
 
 func_game_player_action = function(_type,_player)
 	{
@@ -493,6 +602,7 @@ func_game_player_action = function(_type,_player)
 		var _type_angle = 30;
 		var _type_region = 20 / 2;
 		var _dist = global.LongestDistance + 10;
+		
 		
 		var _dir;
 		#region get point creation
@@ -514,6 +624,12 @@ func_game_player_action = function(_type,_player)
 			{
 			player = _player;
 			}
+		
+		#region camera kick
+		
+		func_cam_kick(_dir + 180);
+		
+		#endregion
 		break;
 		#endregion
 		#region space action
@@ -552,14 +668,6 @@ func_game_player_action = function(_type,_player)
 
 func_game_player_action_hand_eval = function(_id,_type,_player)
 	{
-
-	#region time
-	//reset time
-	
-	func_game_rule_timer_reset();
-	
-	#endregion
-	
 	/*
 	global.Rule_Hand_self
 	RULE_HAND_SELF.anarchy
@@ -569,10 +677,10 @@ func_game_player_action_hand_eval = function(_id,_type,_player)
 	if action_type != -1//if there is a previous action
 		{
 		var _outcome;
-		var _attacked_player = action_inst.player;
+		//action_player
 		
 		#region self play
-		if (_player == _attacked_player) //selfplay happens
+		if (_player == action_player) //selfplay happens
 			switch(global.Rule_Hand_self)//check rules
 				{
 				case RULE_HAND_SELF.anarchy:
@@ -605,9 +713,46 @@ func_game_player_action_hand_eval = function(_id,_type,_player)
 	//set self to last hand played
 	action_type = _type;
 	action_inst = _id;
+	action_player = _id.player;
+	
+	#region time
+	//reset time
+	
+	func_game_rule_timer_reset(false);
+	
+	#endregion
 	}
 
 #endregion
+#endregion
+#region countdown
+
+//countdown_time = global.Game_speed * 3;
+countdown_time = 30;
+countdown_time_count = countdown_time;
+countdown_active = false;
+countdown_done = false;
+pause_dim_a_max = 0.9;
+pause_dim_a = 0;
+
+func_countdown_start = function()
+	{
+	countdown_active = true;
+	countdown_time_count = countdown_time;
+	}
+
+func_countdown_stop = function()
+	{
+	func_countdown_reset();
+	}
+
+func_countdown_reset = function()
+	{
+	countdown_done = false;
+	countdown_active = false;
+	countdown_time_count = countdown_time;
+	}
+
 #endregion
 #region rule timer
 
@@ -618,9 +763,10 @@ timer_disp_y = 0;
 
 timer_angle_tick_channel = animcurve_get_channel(ac_game_rule_timer, "Tick");
 
-timer_tick_num = global.Rule_Timer_Time / global.Game_speed;
-//timer_tick_num = 12;
+//timer_tick_num = global.Rule_Timer_Time / global.Game_speed;
+timer_tick_num = 11;
 timer_tick_val = global.Rule_Timer_Time / timer_tick_num;
+//global.Rule_Timer_Time = timer_tick_num * timer_tick_val;
 timer_tick_tval = 1 / timer_tick_num;
 timer_tick_ang = 360 / timer_tick_num;
 
@@ -631,14 +777,19 @@ timer_hand_sway_val = 10;
 timer_hand_sway = 0;
 timer_hand_tide_val = 5;
 timer_hand_tide = 0;
+timer_hand_return_val = 1;//holds the time that is added to the count to smooth out the hand reset
+timer_hand_return_hold = 0;//holds the time that is added to the count to smooth out the hand reset
+timer_disp_player = 0;
+
 
 //display helpers
 global.Timer_t = 0;			// t for the whole time
 global.Timer_index = 0;		//number that represents which last full tick has been passed  f.e. tick_num = 4; _t = 0.3; _index == 1;
 global.Timer_index_t = 0;	// t in the current tick space
 global.Timer_last_t = 0;	// t in the last tick space
+global.Timer_return_t = 0;
 
-
+//in round use
 func_game_rule_timer_up = function()//when timer runs out
 	{
 	show_debug_message("Times Up");
@@ -647,13 +798,34 @@ func_game_rule_timer_up = function()//when timer runs out
 	
 	*/
 	
+	//-score to other player
+	func_game_score(!action_player,0);
 	
-	func_game_rule_timer_reset();
+	
+	
+	func_game_rule_timer_reset(true);
 	}
-func_game_rule_timer_reset = function()//var reset
+func_game_rule_timer_reset = function(_time_up)//var reset
 	{
 	if global.Rule_Timer
-		timer_count = 0;
+		{
+		if _time_up//time up reset
+			timer_count = 0;
+		else
+			{
+			if timer_count >= 0
+				{
+				timer_hand_return_hold = max(0,timer_count);
+				timer_hand_return_val = (timer_tick_val - (timer_count - (timer_count div timer_tick_val) * timer_tick_val));
+			
+				timer_count = 0 - timer_hand_return_val;
+			
+				show_debug_message("time reset: at= "+string(timer_hand_return_hold)+"| to= "+string(timer_count));
+				}
+			
+			func_timer_player_set();
+			}
+		}
 	}
 
 func_timer_setup = function()
@@ -672,7 +844,16 @@ func_timer_reset = function()//complete var reset
 	{
 	timer_count = 0;
 	global.Timer_t = 0;
+	timer_hand_return_val = 1;
+	timer_hand_return_hold = 0;
+	timer_disp_player = 0;
+	
 	//func_timer_angle_calc(0);
+	}
+
+func_timer_player_set = function() //sets timer_disp_player to either -1 or 1
+	{
+	timer_disp_player = (action_player==-1 ? choose(-1,1) : Func_t_span(action_player));
 	}
 
 func_timer_angle_calc = function(_count)
@@ -680,9 +861,18 @@ func_timer_angle_calc = function(_count)
 	var _shiver = global.Timer_t * 1;
 	
 	var _time_t = ((_count div timer_tick_val) * timer_tick_val) / global.Rule_Timer_Time;
+	//var _time_t = 0;
 	var _tick_t = timer_tick_tval * animcurve_channel_evaluate(timer_angle_tick_channel, (_count mod timer_tick_val) / timer_tick_val);
-	var _ang =  360 * (_time_t + _tick_t) + 90 + (timer_hand_sway * func_timer_arm_close_precision(round(global.Timer_t / timer_tick_tval)));
-	var _leng = timer_disp_length * game_on_t;
+	//var _tick_t = 0;
+	
+	var _ang =  (360 * timer_disp_player) * (_time_t + _tick_t) + 90 + (timer_hand_sway * func_timer_arm_close_precision(round(global.Timer_t / timer_tick_tval)));
+	
+	var _leng = timer_disp_length * game_on_t * (global.Timer_return_t<1 ? Func_t_invert(global.Timer_return_t) : 1);
+	
+	
+	
+	
+	
 	timer_disp_x = global.Game_point_x + lengthdir_x(_leng,_ang) + random_range(-_shiver,_shiver);
 	timer_disp_y = global.Game_point_y + lengthdir_y(_leng,_ang) + random_range(-_shiver,_shiver);
 	}
@@ -692,7 +882,9 @@ func_timer_arm_close_precision = function(i) //0 - 1	//0 when arm is on the give
 	return (min(abs((i / timer_tick_num ) - global.Timer_t), timer_tick_tval) / timer_tick_tval);
 	}
 
-func_timer_angle_calc(0);
+func_timer_player_set();
+func_timer_angle_calc(0,-1);
+
 
 #endregion
 #region hand surface
@@ -826,6 +1018,8 @@ func_input_react_func = function(_func) //go through all done inputs and execute
 #endregion
 #region window frame create
 
+frame_x = 0;
+frame_y = 0;
 frame_border = 20;
 var _surf = surface_create(global.Width + frame_border*2,global.Height + frame_border*2);
 var _num = 90;
@@ -929,6 +1123,19 @@ surface_reset_target();
 frame_sprite = sprite_create_from_surface(_surf,0,0,surface_get_width(_surf),surface_get_height(_surf),false,false,0,0);
 surface_free(_surf);
 
+
+func_frame_move = function(_x,_y)
+	{
+	frame_x = _x;
+	frame_y = _y;
+	}
+
+func_frame_draw = function()
+	{
+	if sprite_exists(frame_sprite)
+		draw_sprite(frame_sprite,0,frame_x - frame_border,frame_y - frame_border);
+	}
+
 #endregion
 #region background create
 
@@ -962,6 +1169,9 @@ layer_y(global.Layer_back, 0);
 
 hand_casc_dist_min =	10;
 hand_casc_dist =		5;
+hand_casc_tcol =		.7;
+hand_casc_tmin =		.7;
+
 
 hand_casc_count1 = 0; //max game_speed
 hand_casc_count2 = 0; //max game_speed
@@ -989,8 +1199,281 @@ func_background_white_move = function(_x,_y)
 
 
 #endregion
+#region Background black
+
+background_black = layer_get_id("Backgrounds_B");
+
+func_background_black_move = function(_x,_y)
+	{
+	layer_x(background_black,_x);
+	layer_y(background_black,_y);
+	}
 
 
+#endregion
+#region camera
+
+global.Cam_pos_x = 0;	//controlled camera position
+global.Cam_pos_y = 0;
+global.Cam_offx = 0;	//offset applied to camera | most screen effects
+global.Cam_offy = 0;
+global.Cam_disp_x = 0;	//displayed cam position | Cam_pos + Cam_offx
+global.Cam_disp_y = 0;
+
+
+#region shock // when score happens
+
+cam_shock_active = false;
+
+cam_shock_time = 3;
+cam_shock_count = 0;
+cam_shock_dist = 4;
+cam_shock_ang = 0;
+cam_shock_ang_rand = 45 / 2;
+
+cam_shock_x = 0;
+cam_shock_y = 0;
+
+func_cam_shock_active = function()
+	{
+	cam_shock_active = true;
+	
+	cam_shock_ang = random(360);
+	}
+func_cam_shock_reset = function()
+	{
+	cam_shock_count = 0;
+	cam_shock_active = false;
+	
+	cam_shock_x = 0;
+	cam_shock_y = 0;
+	}
+
+#endregion
+#region kick
+cam_ckick_spd = 0;
+cam_ckick_dir = 0;
+cam_ckick_x = 0;
+cam_ckick_y = 0;
+cam_ckick_strg = 0.7;
+//cam_ckick_dir_range = 20; //used: random_range(-cam_ckick_dir_range.cam_ckick_dir_range)
+cam_ckick_fric = 0.9;
+cam_ckick_rubber_dec = 0.99;
+cam_ckick_limit_rubber = 3;
+cam_ckick_limit_hard = 7;
+
+//return
+cam_ckick_return = false;
+cam_ckick_return_time = 5;
+cam_ckick_return_count = cam_ckick_return_time;
+cam_ckick_return_dist = cam_ckick_return_time;
+
+
+func_cam_kick = function(_ang)
+	{
+	cam_ckick_spd = cam_ckick_strg;
+	cam_ckick_dir = _ang;// + random_range(-cam_ckick_dir_range,cam_ckick_dir_range);
+	}
+
+func_cam_kick_return = function()
+	{
+	cam_ckick_return = true;
+	cam_ckick_return_dist = point_distance(0,0,cam_ckick_x,cam_ckick_y);
+	}
+
+
+#endregion
+#region score win reaction
+
+cam_score_rumble_val = .4;
+cam_score_rumble_t = 0.4;
+
+//cam_win_rumble_val = 2;
+//cam_win_rumble_t = 1;
+
+cam_rumble_x = 0;
+cam_rumble_y = 0;
+
+#endregion
+
+func_cam_calc = function()
+	{
+	global.Cam_offx = cam_ckick_x + cam_rumble_x + cam_shock_x;
+	global.Cam_offy = cam_ckick_y + cam_rumble_y + cam_shock_y;
+	
+	global.Cam_disp_x = global.Cam_pos_x + global.Cam_offx;
+	global.Cam_disp_y = global.Cam_pos_y + global.Cam_offy;
+	
+	camera_set_view_pos(global.Cam,global.Cam_disp_x,global.Cam_disp_y);
+	}
+
+#endregion
+#region sound
+
+/*
+sounds needed
+
+menu:
+select
+back
+exit
+play
+
+Music:
+background ambiance
+
+battle music
+angle music
+menu music
+win chime
+become god chime
+*/
+
+enum AUDIO_PRIO
+	{
+	music = 100,
+	sfx_essential = 90,
+	sfx_other = 0
+	}
+
+
+//////music
+music_bga = 0;			// background ambiance
+
+
+
+
+////////////sfx
+/////menu
+
+
+
+
+////game
+//time
+sfx_time_tick = snd_sfx_placeholder;
+sfx_time_time_over = snd_sfx_placeholder;
+//hand logic
+sfx_hand_extend = snd_sfx_placeholder;
+sfx_hand_win = snd_sfx_placeholder;
+sfx_hand_loose = snd_sfx_placeholder;
+//score
+sfx_score_positive = snd_sfx_placeholder;
+sfx_score_negative = snd_sfx_placeholder;
+sfx_score_rumble = snd_sfx_placeholder;
+//health
+sfx_health_hurt = snd_sfx_hurt1;
+//win
+sfx_win_positive = snd_sfx_placeholder;
+sfx_win_negative = snd_sfx_placeholder;
+sfx_win_hand_extend = snd_sfx_win_extend;
+
+
+
+//emitter
+sound_emit = audio_emitter_create();
+audio_emitter_position(sound_emit, room_width, global.Game_point_y, 0);
+sound_emit = audio_emitter_create();
+audio_emitter_position(sound_emit, room_width, global.Game_point_y, 0);
+sound_emit = audio_emitter_create();
+audio_emitter_position(sound_emit, room_width, global.Game_point_y, 0);
+
+//listener
+var _list = 100;
+audio_listener_position(global.Game_point_x, global.Game_point_y, -_list);
+
+
+func_audio_play = function(_emit,_snd,_stop,_loop)
+	{
+	var _prio = func_audio_get_prio(_snd);
+	
+	if _stop
+	if audio_is_playing(_snd)
+		audio_stop_sound(_snd);
+	
+	if _emit == -1
+		audio_play_sound(_snd,_prio,_loop);
+	else//use emitter
+		{
+		
+		audio_play_sound_on(_emit,_snd,_loop,_prio);
+		}
+	}
+
+func_audio_get_prio = function(_snd)
+	{
+	var _val;
+	switch(_snd)
+		{
+		case music_bga:
+			_val = AUDIO_PRIO.music;
+		break;
+		//time
+		case sfx_time_tick:
+		case sfx_time_time_over:
+		//hand
+		case sfx_hand_win:
+		case sfx_hand_loose:
+		//score
+		case sfx_score_positive:
+		case sfx_score_negative:
+		//health
+		case sfx_health_hurt:
+		//win
+		case sfx_win_positive:
+		case sfx_win_negative:
+			_val = AUDIO_PRIO.sfx_essential;
+		break;
+		//hand
+		case sfx_hand_extend:
+		//score
+		case sfx_score_rumble:
+		//win
+		case sfx_win_hand_extend:
+			_val = AUDIO_PRIO.sfx_other;
+		break;
+		}
+	return _val;
+	}
+
+func_sound_cleanup = function()
+	{
+	//audio_emitter_free(emitter);
+	
+	
+	
+	
+	}
+
+#endregion
+#region debug
+
+global.Debug = false;
+
+function Func_Debug_Enable(_bool)
+	{
+	global.Debug = _bool;
+	
+	if _bool
+		{
+		
+		
+		}
+	else
+		{
+		
+		
+		}
+		
+	show_debug_overlay(_bool);
+	var _times = _bool ? 2 : 1;
+	display_set_gui_size(global.Width * _times ,global.Height * _times);
+	}
+
+Func_Debug_Enable(global.Debug);
+
+
+#endregion
 
 
 

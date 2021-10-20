@@ -5,15 +5,26 @@ var _t;
 if !end_self
 	{
 	_t = player_score / global.Rule_Health_max;
-	x = lerp(xend_disp,xstart,_t);
+	
+	var _xpos = lerp(x1,x2,_t);
+	var _ypos = lerp(y1,y2,_t);
+	
+	var _dist = Func_value_approach(0,point_distance(x,y,_xpos,_ypos),5);
+	var _dir = point_direction(x,y,_xpos,_ypos);
+	
+	x += lengthdir_x(_dist,_dir);
+	y += lengthdir_y(_dist,_dir);
 	}
 else
 	{
 	_t = 1;
-	var _dist = x - xend;
-	x -= min(abs(_dist),5) * sign(_dist);
+	var _dist = Func_value_approach(point_distance(x,y,xdisp,ydisp) ,0,5);
+	var _dir = point_direction(xdisp,ydisp,x,y);
 	
-	if x == xend
+	x = xdisp + lengthdir_x(_dist,_dir);
+	y = ydisp + lengthdir_y(_dist,_dir);
+	
+	if x == xdisp and y == ydisp 
 		instance_destroy();
 	}
 

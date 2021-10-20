@@ -89,8 +89,8 @@
   ],
   "nineSlice": null,
   "parent": {
-    "name": "hands",
-    "path": "hands.yyp",
+    "name": "Sprite",
+    "path": "folders/Sprite.yy",
   },
   "resourceVersion": "1.0",
   "name": "spr_keys",

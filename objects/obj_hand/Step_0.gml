@@ -20,7 +20,7 @@ if tics_count < tics
 
 if tics_count >= tics
 	{
-	if !eval
+	if !eval //if not evaluated
 		{
 		obj_game.func_game_player_action_hand_eval(id,image_index,player);
 		eval = true;
