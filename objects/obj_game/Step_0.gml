@@ -89,23 +89,32 @@ if global.Rule_Timer
 	var _count = max(timer_count,0);
 	global.Timer_t =		_count / global.Rule_Timer_Time;
 	global.Timer_index =	_count div timer_tick_val;
-	global.Timer_index_t =	(_count mod timer_tick_val) / timer_tick_val;
-	global.Timer_last_t =	max(0,(_count - ((timer_tick_num-1) * timer_tick_val)) / timer_tick_val);
+	global.Timer_index_t =	(_count mod timer_tick_val_smooth) / timer_tick_val_smooth;
+	global.Timer_last_t =	max(0,(_count - ((timer_tick_num-1) * timer_tick_val_smooth)) / timer_tick_val_smooth);
 	global.Timer_return_t = Func_t_invert(clamp(timer_count / (-timer_hand_return_val),0,1)); // value < 0 => 0 | value==0 => _t==1
+	
 	#endregion
 	
 	//display
 	timer_hand_sway = sin(current_time / 2000) * timer_hand_sway_val;
 	timer_hand_tide = sin(current_time / 1500) * timer_hand_tide_val;
 	
-	//sound
-	if timer_start and global.Timer_index_t == 0
-		func_audio_play(-1,sfx_time_tick,90,true,false);
 	
+	#region sound
+	
+	
+	if timer_start  and  global.Timer_index != timer_tick_num  and  global.Timer_index_t==0
+		func_audio_play(-1,sfx_time_tick,true,false);
+	
+	#endregion
+	
+	
+	#region time hand
 	if global.Timer_return_t < 1// if resetting
-		func_timer_angle_calc(timer_hand_return_hold);
+		func_timer_angle_calc(timer_hand_return_hold);//display old receding hand
 	else
 		func_timer_angle_calc(timer_count);
+	#endregion
 	}
 
 #endregion

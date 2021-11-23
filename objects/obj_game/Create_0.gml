@@ -764,8 +764,9 @@ timer_disp_y = 0;
 timer_angle_tick_channel = animcurve_get_channel(ac_game_rule_timer, "Tick");
 
 //timer_tick_num = global.Rule_Timer_Time / global.Game_speed;
-timer_tick_num = 11;
-timer_tick_val = global.Rule_Timer_Time / timer_tick_num;
+timer_tick_num = 11;//11
+timer_tick_val = global.Rule_Timer_Time / timer_tick_num;	//timespan in frames between two arms
+timer_tick_val_smooth = round(timer_tick_val);				//timer_tick_val rounded to remove fractions for better displaying,  might be better to do at runtime for benefit of bankers rounding
 //global.Rule_Timer_Time = timer_tick_num * timer_tick_val;
 timer_tick_tval = 1 / timer_tick_num;
 timer_tick_ang = 360 / timer_tick_num;
@@ -797,10 +798,11 @@ func_game_rule_timer_up = function()//when timer runs out
 	what happens when the timer runs out
 	
 	*/
+	//sound
+	func_audio_play(-1,sfx_time_time_over,true,false);
 	
 	//-score to other player
 	func_game_score(!action_player,0);
-	
 	
 	
 	func_game_rule_timer_reset(true);
@@ -862,10 +864,10 @@ func_timer_angle_calc = function(_count)
 	
 	var _time_t = ((_count div timer_tick_val) * timer_tick_val) / global.Rule_Timer_Time;
 	//var _time_t = 0;
-	var _tick_t = timer_tick_tval * animcurve_channel_evaluate(timer_angle_tick_channel, (_count mod timer_tick_val) / timer_tick_val);
+	var _tick_t = timer_tick_tval * animcurve_channel_evaluate(timer_angle_tick_channel, (_count mod timer_tick_val_smooth) / timer_tick_val_smooth);
 	//var _tick_t = 0;
 	
-	var _ang =  (360 * timer_disp_player) * (_time_t + _tick_t) + 90 + (timer_hand_sway * func_timer_arm_close_precision(round(global.Timer_t / timer_tick_tval)));
+	var _ang =  (360 * timer_disp_player) * (_time_t + _tick_t) + 90;// + (timer_hand_sway * func_timer_arm_close_precision(round(global.Timer_t / timer_tick_tval)));
 	
 	var _leng = timer_disp_length * game_on_t * (global.Timer_return_t<1 ? Func_t_invert(global.Timer_return_t) : 1);
 	
@@ -882,9 +884,9 @@ func_timer_arm_close_precision = function(i) //0 - 1	//0 when arm is on the give
 	return (min(abs((i / timer_tick_num ) - global.Timer_t), timer_tick_tval) / timer_tick_tval);
 	}
 
-func_timer_player_set();
-func_timer_angle_calc(0,-1);
 
+func_timer_player_set();
+func_timer_angle_calc(0);
 
 #endregion
 #region hand surface
@@ -1341,18 +1343,14 @@ enum AUDIO_PRIO
 music_bga = 0;			// background ambiance
 
 
-
-
 ////////////sfx
 /////menu
 
 
-
-
 ////game
 //time
-sfx_time_tick = snd_sfx_placeholder;
-sfx_time_time_over = snd_sfx_placeholder;
+sfx_time_tick = snd_sfx_timer_tick;
+sfx_time_time_over = snd_sfx_timer_over;
 //hand logic
 sfx_hand_extend = snd_sfx_placeholder;
 sfx_hand_win = snd_sfx_placeholder;
@@ -1383,21 +1381,41 @@ var _list = 100;
 audio_listener_position(global.Game_point_x, global.Game_point_y, -_list);
 
 
-func_audio_play = function(_emit,_snd,_stop,_loop)
+func_audio_play = function(_emit,_snd,_stop,_loop,_manprio)
 	{
-	var _prio = func_audio_get_prio(_snd);
+	//plays a sound, automatically sets priority
+	/*
+	_emit		= | id		| emitter id
+	_snd		= | id		| sound id
+	_stop		= | bool	| if there is a sound with same id playing, stop it to play the new one
+	_loop		= | bool	| if the sound should loop
+	_manprio	= | val		| manual priority set
+	*/
+	
+	#region sound priority
+	var _prio;
+	
+	if is_undefined(_manprio)
+		_manprio = func_audio_get_prio(_snd);
+	else
+		_prio = _manprio;
+	#endregion
 	
 	if _stop
 	if audio_is_playing(_snd)
 		audio_stop_sound(_snd);
 	
+	/*
 	if _emit == -1
 		audio_play_sound(_snd,_prio,_loop);
 	else//use emitter
 		{
-		
 		audio_play_sound_on(_emit,_snd,_loop,_prio);
 		}
+	*/
+	show_debug_message("!!! Audio DISABLED !!! sound played: "+string(audio_get_name(_snd)));
+	
+	
 	}
 
 func_audio_get_prio = function(_snd)

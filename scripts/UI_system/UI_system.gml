@@ -103,14 +103,15 @@ function Func_UI_create_group(_enabled,_progress,_time,_dis_step,_dis_draw)
 	{
 	/*
 	_enabled		| bool		| if the group is visible and active
+	_progress		| val		| starting progress
 	_time			| val		| the time it takes to deactivate the group
-	_dis_draw		| bool		| if the group will still run its draw event when:	disabled but time not 0
 	_dis_step		| bool		| if the group will still run its x event when:		disabled but time not 0
+	_dis_draw		| bool		| if the group will still run its draw event when:	disabled but time not 0
 	
 	///////////////////////////////////////////////////////////////////
 	
 	RETURN
-	returns index in UI_element_grid
+	returns index in UI_group_grid
 	///////////////////////////////////////////////////////////////////
 	
 	*/
