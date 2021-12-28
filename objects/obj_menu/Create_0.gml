@@ -1,5 +1,6 @@
 /// @desc 
 
+event_inherited();
 
 func_menu_game_start = function()
 	{
@@ -7,12 +8,6 @@ func_menu_game_start = function()
 	
 	}
 
-#region UI system init
-
-UI_system();
-
-
-#endregion
 #region UI
 
 var _button_x = 20;
@@ -21,7 +16,7 @@ var _button_w = 50;
 var _button_h = sprite_get_height(spr_hand_stretch);
 var _button_sep = 10;
 
-menu_transform_time = global.Game_speed * 0.3;
+
 
 menu_options_extended = false;
 menu_options_ext_t = 0;
@@ -244,7 +239,7 @@ func_button_int_options =	function(_x1,_y1,_x2,_y2,i,_str,_g_enabled,_gt)
 
 #region main
 
-manu_group_main = Func_UI_create_group(true,0,menu_transform_time,false,true);
+manu_group_main = Func_UI_create_group(true,0,group_speed,false,true);
 
 var _x = _button_x;
 var _y = _button_y;
@@ -271,7 +266,7 @@ var _y = _button_y;
 var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
 
-manu_group_options = Func_UI_create_group(false,0,menu_transform_time,false,true);
+manu_group_options = Func_UI_create_group(false,0,group_speed,false,true);
 
 
 
@@ -304,7 +299,7 @@ var _x = _button_x;
 var _y = _button_y;
 var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
-manu_group_optWin = Func_UI_create_group(false,0,menu_transform_time,false,true);
+manu_group_optWin = Func_UI_create_group(false,0,group_speed,false,true);
 
 Func_UI_add_element(manu_group_optWin,_x,_y,_x2,_y2,"Options: Winning",-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
@@ -330,7 +325,7 @@ var _x = _button_x;
 var _y = _button_y;
 var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
-manu_group_optScoHeal = Func_UI_create_group(false,0,menu_transform_time,false,true);
+manu_group_optScoHeal = Func_UI_create_group(false,0,group_speed,false,true);
 
 Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"Options: Score and Health",-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
@@ -360,7 +355,7 @@ var _x = _button_x;
 var _y = _button_y;
 var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
-manu_group_optGame = Func_UI_create_group(false,0,menu_transform_time,false,true);
+manu_group_optGame = Func_UI_create_group(false,0,group_speed,false,true);
 
 Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"Options: Gameplay",-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
@@ -386,7 +381,7 @@ _y2 = _y + _button_h;
 
 #endregion
 #region other
-manu_group_other = Func_UI_create_group(true,0,menu_transform_time,false,true);
+manu_group_other = Func_UI_create_group(true,0,group_speed,false,true);
 var _y = room_height - 30;
 Func_UI_add_element(manu_group_other,_button_x,_y,_button_x + _button_w,_y,"Feedback Would be appreciated.",-1,Func_button_draw_main);
 

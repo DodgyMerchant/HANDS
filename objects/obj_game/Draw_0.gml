@@ -71,30 +71,34 @@ if global.Rule_Timer
 
 #endregion
 #region draw hand cascade
-/*
-hand_casc_count1
-hand_casc_count2
-hand_casc_channel1
-hand_casc_channel2
-*/
 
-//if action_type != -1
+
+//if action_type != -1 //dont display when nothing was played
 	{
 	//var _strenght = abs(global.Game_Score) +1;	old
-	var _strenght = lerp(1,3,global.Game_Score_t);
-	var _ang = 360/ 10;
+	var _vari_dist = lerp(hand_casc_dist_vari_min, hand_casc_dist_vari_max, global.Game_Score_t);
+	var _ang = 360/ hand_casc_num;
 	var _tcol = hand_casc_tcol * game_on_t;
 	var _type = (action_type==-1 ? HAND_TYPE.open : action_type);
-	var _x,_y,_dist,_ang_move;
 	
+	var _varicurve = animcurve_channel_evaluate(global.gendisp_vari_channel2,global.gendisp_vari_t2);
+	
+	var _x,_y,_dist,_ang_move;
 	for (var i=0;i<360;i+=_ang)
 		{
-		_dist = (hand_casc_dist_min + hand_casc_dist * _strenght *													//
-		((animcurve_channel_evaluate(hand_casc_channel1,(hand_casc_count1/global.Game_speed + i/360) mod 1) +		//some of this can be calced outside the loop
-		animcurve_channel_evaluate(hand_casc_channel2,hand_casc_count2/global.Game_speed)) / 2)) + game_on_t;		//
+		_dist = 
+			(
+			hand_casc_dist + _vari_dist *													//
+				(
+				animcurve_channel_evaluate(global.gendisp_vari_channel1,(global.gendisp_vari_t1 + i/360) mod 1)//curve 1 applied over each hand position individually
+				* _varicurve //curve 2 applied to all hands equaly
+				)
+			/// 2 //divide by number of curves | so 2 curves at max == max deviation distance allowed | dont need to if I multiplay
+			)
+		* game_on_t; //apply fade in
 		
 		
-		_ang_move = (i + hand_casc_count3 / global.Game_speed * 360) mod 360;
+		_ang_move = (i + global.gendisp_vari_ang_t * 360) mod 360;
 		_x = global.Game_point_x + lengthdir_x(_dist,_ang_move);
 		_y = global.Game_point_y + lengthdir_y(_dist,_ang_move);
 		

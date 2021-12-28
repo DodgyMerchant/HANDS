@@ -1,5 +1,7 @@
 /// @desc 
 
+event_inherited();
+
 active = true;
 
 
@@ -17,26 +19,13 @@ var _disp_h = sprite_get_height(spr_hand_stretch);
 var _disp_y_sep = 15;
 
 //pause menu group
-pamen_group_speed = global.Game_speed*.5;
-pamen_group = Func_UI_create_group(true,0,pamen_group_speed,false,true);
 
-
-/*
-
-//ending
-
-
-
-//unpausing
-
-
-
-//*/
+pamen_group = Func_UI_create_group(true,0,group_speed,false,true);
 
 
 func_pausemenu_close = function()
 	{
-	alarm[0] = pamen_group_speed;
+	alarm[0] = group_speed;
 	Func_UI_group_enable(pamen_group,false);
 	}
 func_pausemenu_return = function()

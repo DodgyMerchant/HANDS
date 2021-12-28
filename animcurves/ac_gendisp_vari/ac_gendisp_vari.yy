@@ -21,7 +21,7 @@
     "path": "hands.yyp",
   },
   "resourceVersion": "1.2",
-  "name": "ac_hand_cascade",
+  "name": "ac_gendisp_vari",
   "tags": [],
   "resourceType": "GMAnimCurve",
 }

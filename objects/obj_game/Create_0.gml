@@ -59,7 +59,6 @@ global.Layer_menus = layer_get_id("Menus");
 global.Game_point_x = global.Width/2;
 global.Game_point_y = global.Height/2;
 
-
 func_game_point_update = function(_xoff,_yoff)
 	{
 	global.Game_point_x = global.Width/2	+ _xoff;
@@ -100,6 +99,44 @@ func_menu_pause_create = function()
 			active = true;
 			}
 	}
+
+#endregion
+#region genral display
+
+
+#region general display variation
+
+
+
+gendisp_vari_count1 = 0; //counts from 0 - gamespeed
+gendisp_vari_count2 = 0; //
+global.gendisp_vari_t1 = 0; // t of count  for display needs
+global.gendisp_vari_t2 = 0; //
+
+
+
+
+gendisp_vari_count_angle = 0; //max game_speed
+global.gendisp_vari_channel1 = animcurve_get_channel(ac_gendisp_vari, 0); 
+global.gendisp_vari_channel2 = animcurve_get_channel(ac_gendisp_vari, 1);
+
+func_gendisp_calc = function()
+	{
+	gendisp_vari_count1 = (gendisp_vari_count1 + 1) mod global.Game_speed;//counts up by val(1) mods to gamespeed(1 second)
+	gendisp_vari_count2 = (gendisp_vari_count2 + 1) mod global.Game_speed;//
+	global.gendisp_vari_t1 = gendisp_vari_count1 / global.Game_speed;
+	global.gendisp_vari_t2 = gendisp_vari_count2 / global.Game_speed;
+	
+	
+	gendisp_vari_count_angle = (gendisp_vari_count_angle + (1 * global.Game_Score_t * global.Game_Score_t_sign)) mod global.Game_speed;//
+	global.gendisp_vari_ang_t = gendisp_vari_count_angle / global.Game_speed;//
+	
+	}
+
+
+#endregion
+
+
 
 #endregion
 #region game rules
@@ -1169,17 +1206,12 @@ layer_y(global.Layer_back, 0);
 #endregion
 #region hand cascade
 
-hand_casc_dist_min =	10;
-hand_casc_dist =		5;
+
+hand_casc_num =	10; //number of hands
+hand_casc_dist =	10; //minimum distance from middle point
+hand_casc_dist_vari_min =	5; //addative vrying distance from middle point
+hand_casc_dist_vari_max =	15; //addative vrying distance from middle point
 hand_casc_tcol =		.7;
-hand_casc_tmin =		.7;
-
-
-hand_casc_count1 = 0; //max game_speed
-hand_casc_count2 = 0; //max game_speed
-hand_casc_count3 = 0; //max game_speed
-hand_casc_channel1 = animcurve_get_channel(ac_hand_cascade, 0); 
-hand_casc_channel2 = animcurve_get_channel(ac_hand_cascade, 1);
 
 
 #endregion
@@ -1492,6 +1524,7 @@ Func_Debug_Enable(global.Debug);
 
 
 #endregion
+
 
 
 

@@ -120,6 +120,13 @@ if global.Rule_Timer
 #endregion
 #region visual display _t and sign
 
+#region general display
+
+func_gendisp_calc();
+
+
+
+#endregion
 #region score
 switch(global.Rule_Score_type)
 	{
@@ -196,14 +203,6 @@ if !surface_exists(global.Hand_surface)//surf got destroyed
 	global.Hand_surface = surface_create(300,200);
 	}
 
-
-
-#endregion
-#region hand cascade count
-
-hand_casc_count1 = (hand_casc_count1 + 1) mod global.Game_speed;//
-hand_casc_count2 = (hand_casc_count2 + 1) mod global.Game_speed;//
-hand_casc_count3 = (hand_casc_count3 + 0.10 * (global.Game_Score_needed * global.Game_Score_t * global.Game_Score_t_sign)) mod global.Game_speed;//
 
 
 #endregion
