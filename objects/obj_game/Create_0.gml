@@ -83,6 +83,27 @@ func_window_name = function()
 	window_set_caption(_str);
 	}
 
+#endregion
+#region menu
+
+#region control type
+enum MENU_CONTROL_TYPE
+	{
+	mouse,
+	buttons
+	}
+global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
+
+func_menu_check_inputtype = function()
+	{
+	if mouse_check_button(mb_any) or mouse_moved
+		global.Menu_control_type = MENU_CONTROL_TYPE.mouse;
+	else if keyboard_check(vk_anykey) or Func_input_all_gp_any()!=-1
+		global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
+	}
+
+#endregion
+
 func_menu_create = function()
 	{
 	instance_create_layer(0,0,global.Layer_menus,obj_menu);
@@ -112,11 +133,10 @@ gendisp_vari_count1 = 0; //counts from 0 - gamespeed
 gendisp_vari_count2 = 0; //
 global.gendisp_vari_t1 = 0; // t of count  for display needs
 global.gendisp_vari_t2 = 0; //
-
-
-
-
+//angle
 gendisp_vari_count_angle = 0; //max game_speed
+global.gendisp_vari_ang_t = 0;
+//channels
 global.gendisp_vari_channel1 = animcurve_get_channel(ac_gendisp_vari, 0); 
 global.gendisp_vari_channel2 = animcurve_get_channel(ac_gendisp_vari, 1);
 
@@ -633,9 +653,9 @@ func_game_player_action = function(_type,_player)
 	switch(_type)
 		{
 		#region hand action
-		case HAND_TYPE.open:
-		case HAND_TYPE.point:
-		case HAND_TYPE.fist:
+		case INPUT_TYPE.open: // == HAND_TYPE.open
+		case INPUT_TYPE.point: // == HAND_TYPE.point
+		case INPUT_TYPE.fist: // == HAND_TYPE.fist
 		var _type_angle = 30;
 		var _type_region = 20 / 2;
 		var _dist = global.LongestDistance + 10;
@@ -670,7 +690,7 @@ func_game_player_action = function(_type,_player)
 		break;
 		#endregion
 		#region space action
-		case -1:
+		case INPUT_TYPE.special:
 		
 		if global.Rule_Score_type =  SCORE_TYPE.st_points
 			{
@@ -961,14 +981,66 @@ func_handsurf_draw = function()
 
 
 #endregion
-#region player input
+#region input
+
+/*
+rumble!!
+
+gamepad_set_vibration(device, left_motor, right_motor);
+*/
+#region mouse input
+
+mouse_xlast = mouse_x;
+mouse_ylast = mouse_y;
+mouse_moved = false;
+
+func_mouse_check_moved = function()
+	{
+	mouse_moved = mouse_xlast != mouse_x or mouse_ylast != mouse_y;
+	
+	mouse_xlast = mouse_x;
+	mouse_ylast = mouse_y;
+	}
+
+#endregion
+#region gamepad
+
+global.Input_gp_list = ds_list_create();
+global.Input_gp_active_list = ds_list_create();
+
+func_gamepad_connected_update = function()
+	{
+	//clear active list
+	ds_list_clear(global.Input_gp_active_list);
+	
+	var gp_num = gamepad_get_device_count();
+	var _size = ds_list_size(global.Input_gp_list);
+	for (var i = 0; i < gp_num; i++;)
+	    {
+		if i > _size //resize of too small
+			ds_list_add(global.Input_gp_list,false);
+		
+	    if gamepad_is_connected(i)
+	        {
+	        global.Input_gp_list[| i] = true;
+			ds_list_add(global.Input_gp_active_list,i);
+	        }
+	    else
+	        {
+	        global.Input_gp_list[| i] = false;
+	        }
+	    }
+	}
+
+func_gamepad_connected_update();
+#endregion
 
 player_input_list = ds_list_create(); //lists that holds all inputs that are done this frame
 repeat (global.Player_num) ds_list_add(player_input_list,false);
 
 enum INPUT_TYPE
 	{
-	space = -1,
+	special = -1,
 	open = HAND_TYPE.open,
 	point = HAND_TYPE.point,
 	fist = HAND_TYPE.fist
@@ -993,8 +1065,12 @@ ord("Q"),	INPUT_TYPE.open,	0,
 ord("A"),	INPUT_TYPE.point,	0,
 ord("Y"),	INPUT_TYPE.fist,	0,
 ord("Z"),	INPUT_TYPE.fist,	0,
-
+///contrller
+gp_padu,	INPUT_TYPE.open,	0,
+gp_padr,	INPUT_TYPE.point,	0,
+gp_padd,	INPUT_TYPE.fist,	0,
 //////p2
+
 //890
 ord("8"),	INPUT_TYPE.open,	1,
 ord("9"),	INPUT_TYPE.point,	1,
@@ -1007,8 +1083,17 @@ ord("M"),	INPUT_TYPE.fist,	1,
 vk_numpad3,	INPUT_TYPE.open,	2,
 vk_numpad6,	INPUT_TYPE.point,	2,
 vk_numpad9,	INPUT_TYPE.fist,	2,
-//space
-vk_space,	INPUT_TYPE.space,	-1
+///controller
+gp_face4,	INPUT_TYPE.open,	2,
+gp_face3,	INPUT_TYPE.point,	2,
+gp_face1,	INPUT_TYPE.fist,	2,
+
+
+///////space
+vk_space,	INPUT_TYPE.special,	-1,
+//controller
+gp_shoulderlb,	INPUT_TYPE.special,	-1,
+gp_shoulderrb,	INPUT_TYPE.special,	-1
 )
 #endregion
 
@@ -1043,7 +1128,7 @@ func_input_check = function()
 func_input_react_func = function(_func) //go through all done inputs and execute given function(input_type,input_player)
 	{
 	//go through aall done inputs
-	var _type,_player
+	var _type,_player;
 	var _size = ds_list_size(player_input_list);
 	for (var i=0;i<_size;i++)
 		{
@@ -1515,12 +1600,13 @@ function Func_Debug_Enable(_bool)
 		
 		}
 		
-	show_debug_overlay(_bool);
+	//show_debug_overlay(_bool);
+	show_debug_overlay(true);
 	var _times = _bool ? 2 : 1;
 	display_set_gui_size(global.Width * _times ,global.Height * _times);
 	}
 
-Func_Debug_Enable(global.Debug);
+//Func_Debug_Enable(global.Debug);
 
 
 #endregion

@@ -75,7 +75,6 @@ if global.Rule_Timer
 
 //if action_type != -1 //dont display when nothing was played
 	{
-	//var _strenght = abs(global.Game_Score) +1;	old
 	var _vari_dist = lerp(hand_casc_dist_vari_min, hand_casc_dist_vari_max, global.Game_Score_t);
 	var _ang = 360/ hand_casc_num;
 	var _tcol = hand_casc_tcol * game_on_t;

@@ -90,7 +90,8 @@ func_button_int_switch_group =	function(_x1,_y1,_x2,_y2,i,_str,_g_enabled,_gt)
 
 func_button_int_options =	function(_x1,_y1,_x2,_y2,i,_str,_g_enabled,_gt)
 	{
-	var _click = point_in_rectangle(mouse_x,mouse_y,_x1,_y1,_x2,_y2) and mouse_check_button_pressed(mb_left);
+	//var _click = point_in_rectangle(mouse_x,mouse_y,_x1,_y1,_x2,_y2) and mouse_check_button_pressed(mb_left);
+	var _click = i==menu_selected and menu_action;
 	
 	switch(i)
 		{

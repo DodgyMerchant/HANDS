@@ -32,14 +32,15 @@ _y = func_debug_txt(0,_y,
 "last_t: "+string(global.Timer_last_t),
 "return_t: "+string(global.Timer_return_t),
 "timer_disp_player: "+string(timer_disp_player),
-"test: "+string(-13 div 4),
-
-
-
+"global.Menu_control_type: "+string(global.Menu_control_type),
 
 );
 
-
+if instance_exists(parent_menu)
+_y = func_debug_txt(0,_y,
+"///////MENU///////",
+"menu_selected: "+string(parent_menu.menu_selected),
+);
 
 
 

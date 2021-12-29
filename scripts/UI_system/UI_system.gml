@@ -24,6 +24,7 @@ enum UI_GROUP_INDEX
 	trans,
 	dis_step,
 	dis_draw,
+	element_list,
 	enum_height
 	}
 UI_group_grid = ds_grid_create(UI_GROUP_INDEX.enum_height, 1);
@@ -75,6 +76,9 @@ function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_step_func,_draw_func)
 	UI_element_grid[# UI_ELEMENT_INDEX.step_func		, _index] = _step_func;
 	UI_element_grid[# UI_ELEMENT_INDEX.draw_func		, _index] = _draw_func;
 	
+	//add to group
+	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _index);
+	
 	return _index;
 	}
 
@@ -123,6 +127,7 @@ function Func_UI_create_group(_enabled,_progress,_time,_dis_step,_dis_draw)
 	UI_group_grid[# UI_GROUP_INDEX.trans	,_index] = _progress / _time;
 	UI_group_grid[# UI_GROUP_INDEX.dis_step	,_index] = _dis_step;
 	UI_group_grid[# UI_GROUP_INDEX.dis_draw	,_index] = _dis_draw;
+	UI_group_grid[# UI_GROUP_INDEX.element_list	,_index] = ds_list_create();
 	
 	return _index;
 	}
@@ -187,6 +192,10 @@ function Func_UI_draw(_master_x,_master_y)
 //put into cleanup event
 function Func_UI_cleanup()
 	{
+	var _height = ds_grid_height(UI_group_grid)
+	for(var i=0; i<_height;i++)
+		ds_list_destroy(UI_group_grid[# UI_GROUP_INDEX.element_list, i])
+	
 	ds_grid_destroy(UI_element_grid);
 	ds_grid_destroy(UI_group_grid);
 	}

@@ -57,3 +57,28 @@ function Func_t_get_span_clamp(_t,_tbegin,_tend) //same but clamped to 0,1
 	{
 	return clamp(Func_t_get_span(_t,_tbegin,_tend),0,1);
 	}
+
+//controller
+function Func_input_gp_any(_controller) //returns number of nay controller input or -1
+	{
+	for (var i=gp_face1;i<gp_axisrv;i++)
+		{
+	    if gamepad_button_check(_controller, i)
+			return i;
+		}
+	return -1;
+	}
+function Func_input_all_gp_any() //checks all gamepads eturns input or -1
+	{
+	var _val;
+	var _size = ds_list_size(global.Input_gp_active_list);
+	if _size > 0
+		{
+		for (var i=0;i<_size;i++)
+			_val = Func_input_gp_any(global.Input_gp_active_list[| i]);
+			if _val != -1
+				return _val;
+		}
+	else
+		return -1;
+	}
