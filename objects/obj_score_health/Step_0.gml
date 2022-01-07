@@ -29,12 +29,29 @@ else
 	}
 
 //disp
+#region set hand type depending on score
+/* DOESNT  WORK WITH <=0 FOR POINT
+switch(player_score)
+	{
+	case global.Rule_Health_max:
+		type = HAND_TYPE.fist;
+	break;
+	case 0:
+		type = HAND_TYPE.point;
+	break;
+	default:
+		type = HAND_TYPE.fist;
+	}
+//*/
+//*
 if player_score == global.Rule_Health_max
 	type = HAND_TYPE.fist;
+else if player_score <= 0
+	type = HAND_TYPE.point;
 else
 	type = HAND_TYPE.open;
-
-
+//*/
+#endregion
 #region shiver
 /*
 global.Game_Score_t

@@ -27,6 +27,10 @@ draw_text(global.Game_point_x-10,global.Game_point_y, _str);
 #endregion
 
 
-//draw frame
-func_frame_draw();
+#region draw frame
 
+
+func_frame_draw();
+	
+
+#endregion

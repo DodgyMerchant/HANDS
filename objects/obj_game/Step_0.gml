@@ -149,13 +149,13 @@ switch(global.Rule_Score_type)
 				_small_i = .5;
 			}
 		
-		global.Game_Score_t = Func_t_invert(_small_val/global.Rule_Health_max);//inverts _t   1(high) == full effect
+		global.Game_Score_t = Func_t_invert(_small_val/global.Rule_Health_max);//inverts _t   low health == high value (1) || full effect
 		//global.Game_Score_t_sign = (_small_i == 0 ? 1 : -1);
-		global.Game_Score_t_sign = Func_t_span( Func_t_invert(_small_i));
+		func_score_t_sign_update(Func_t_span( Func_t_invert(_small_i))); //function to check if 0 are allowed
 	break;
 	case SCORE_TYPE.st_points:
 		global.Game_Score_t = abs(global.Game_Score) / global.Game_Score_needed;
-		global.Game_Score_t_sign = sign(global.Game_Score);
+		func_score_t_sign_update(sign(global.Game_Score)); //function to check if 0 are allowed
 		
 	break;
 	}
@@ -204,6 +204,15 @@ if !surface_exists(global.Hand_surface)//surf got destroyed
 	}
 
 
+
+#endregion
+#region hand frame
+
+frame_hand_spazchance =	lerp(frame_hand_spazchance_min,	frame_hand_spazchance_max,	animcurve_channel_evaluate(animcurve_get_channel(ac_frame_hands, "live_chance"), global.Game_Score_t));
+frame_hand_spaztime =	lerp(frame_hand_spaztime_min,	frame_hand_spaztime_max,	global.Game_Score_t);
+frame_hand_spazrange =	lerp(frame_hand_spazrange_min,	frame_hand_spazrange_max,	global.Game_Score_t);
+
+func_frame_step();
 
 #endregion
 #region Background

@@ -20,26 +20,47 @@ switch(global.Rule_Hand_self)
 	}
 
 _y = func_debug_txt(0,_y,
+/*
 "RULES",
 "Wins against?: "+string(global.Game_Wins_against),
 "Score type: "+(global.Rule_Score_type == SCORE_TYPE.st_points ? "Points" : "Health"),
 "Timer enabled: "+string(global.Rule_Timer),
 "Hand self type: "+_hsstr,
 "global.Rule_Hand_self: "+string(global.Rule_Hand_self),
+//*/
+/*
+"TIMER",
 "Timer T",
 "T: "+string(global.Timer_t),
 "index +t:"+string(global.Timer_index)+"/"+string(global.Timer_index_t),
 "last_t: "+string(global.Timer_last_t),
 "return_t: "+string(global.Timer_return_t),
 "timer_disp_player: "+string(timer_disp_player),
-"global.Menu_control_type: "+string(global.Menu_control_type),
+//*/
+//*
+"Display t",
+"Game_Score_t/sign:"+string(global.Game_Score_t)+"/"+string(global.Game_Score_t_sign),
+"Game_Wins_t/sign:"+string(global.Game_Wins_t)+"/"+string(global.Game_Wins_t_sign),
+"Vari",
+"vari t1|2: "+string(global.gendisp_vari_t1)+"|"+string(global.gendisp_vari_t2),
+"vari ang t|ts: "+string(global.gendisp_vari_ang_t)+"|"+string(global.gendisp_vari_ang_ts),
+"Frame Hands",
+"spaz chance : "+string(frame_hand_spazchance),
+"spaz time : "+string(frame_hand_spaztime),
+"spaz range : "+string(frame_hand_spazrange),
 
+
+
+
+
+//*/
 );
 
 if instance_exists(parent_menu)
 _y = func_debug_txt(0,_y,
 "///////MENU///////",
 "menu_selected: "+string(parent_menu.menu_selected),
+"global.Menu_control_type: "+string(global.Menu_control_type),
 );
 
 
@@ -49,3 +70,7 @@ _y = func_debug_txt(0,_y,
 
 }
 #endregion
+
+
+
+

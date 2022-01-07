@@ -22,6 +22,16 @@ var _disp_y_sep = 15;
 
 pamen_group = Func_UI_create_group(true,0,group_speed,false,true);
 
+/*
+updated UI system!!
+
+menu_selected == index of the hovered over menu element
+menu_action == true if action taken ()atm only mb_left
+
+if menu_action and menu_selected==_index
+
+_x1,_y1,_x2,_y2,_index,_str,_g_enabled,_gt
+*/
 
 func_pausemenu_close = function()
 	{
@@ -41,32 +51,26 @@ func_pausemenu_return = function()
 			func_countdown_start();//activate countdown
 		}
 	}
-func_pausemenu_int_return = function(_x1,_y1,_x2,_y2)
+func_pausemenu_int_return = function(_x1,_y1,_x2,_y2,_index)
 	{
-	if point_in_rectangle(mouse_x,mouse_y,_x1,_y1,_x2,_y2)
+	if (menu_action and menu_selected==_index) or keyboard_check_pressed(vk_space)
 		{
-		if mouse_check_button_pressed(mb_left)
-			{
-			func_pausemenu_return();
-			func_pausemenu_close();
-			}
+		func_pausemenu_return();
+		func_pausemenu_close();
 		}
 	}
-func_pausemenu_int_to_main = function(_x1,_y1,_x2,_y2)
+func_pausemenu_int_to_main = function(_x1,_y1,_x2,_y2,_index)
 	{
-	if point_in_rectangle(mouse_x,mouse_y,_x1,_y1,_x2,_y2)
+	if (menu_action and menu_selected==_index) or keyboard_check_pressed(vk_escape)
 		{
-		if mouse_check_button_pressed(mb_left)
+		with(obj_game)
 			{
-			with(obj_game)
-				{
-				func_game_end();
-				}
-			func_pausemenu_close();
+			func_game_end();
 			}
+		func_pausemenu_close();
 		}
 	}
-	
+
 
 var _x = _disp_x;
 var _y = _disp_y;
@@ -80,14 +84,12 @@ Func_UI_add_element(pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Exit to menu",func_
 _y += _disp_h + _disp_y_sep;
 
 
-
-
 #endregion
 #region menu input
 
 
 //input transition overflow prevention
-input_allow = false;
+//input_allow = false;
 
 
 

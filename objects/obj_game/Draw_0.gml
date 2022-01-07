@@ -75,6 +75,7 @@ if global.Rule_Timer
 
 //if action_type != -1 //dont display when nothing was played
 	{
+	
 	var _vari_dist = lerp(hand_casc_dist_vari_min, hand_casc_dist_vari_max, global.Game_Score_t);
 	var _ang = 360/ hand_casc_num;
 	var _tcol = hand_casc_tcol * game_on_t;
@@ -82,6 +83,18 @@ if global.Rule_Timer
 	
 	var _varicurve = animcurve_channel_evaluate(global.gendisp_vari_channel2,global.gendisp_vari_t2);
 	
+	#region battle
+	var _battle;
+	if global.Game_Score_t_sign==0
+		{
+		var _battle_range = lerp(hand_casc_battle_min, hand_casc_battle_max, global.Game_Score_t);
+		_battle = random_range(-_battle_range,_battle_range);
+		}
+	else
+		_battle = 0;
+	#endregion
+	
+	var _vari_ang = global.gendisp_vari_ang_ts * 360 + _battle;
 	var _x,_y,_dist,_ang_move;
 	for (var i=0;i<360;i+=_ang)
 		{
@@ -97,7 +110,7 @@ if global.Rule_Timer
 		* game_on_t; //apply fade in
 		
 		
-		_ang_move = (i + global.gendisp_vari_ang_t * 360) mod 360;
+		_ang_move = (i + _vari_ang) mod 360;
 		_x = global.Game_point_x + lengthdir_x(_dist,_ang_move);
 		_y = global.Game_point_y + lengthdir_y(_dist,_ang_move);
 		
@@ -133,7 +146,4 @@ draw_circle(global.Game_point_x,global.Game_point_y, _r,false);
 }
 
 
-
-
-
-
+//Func_draw_hand_arm(HAND_TYPE.open,global.Game_point_x,global.Game_point_y,mouse_x,mouse_y,90,1,false);

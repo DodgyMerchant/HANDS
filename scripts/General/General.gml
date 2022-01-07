@@ -82,3 +82,14 @@ function Func_input_all_gp_any() //checks all gamepads eturns input or -1
 	else
 		return -1;
 	}
+
+//chance
+function Func_chance1(_chance)
+	{
+	return random(1) < _chance;
+	}
+
+function Func_chance100(_chance)
+	{
+	return random(100) < _chance;
+	}

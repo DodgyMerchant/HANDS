@@ -1,21 +1,11 @@
 /// @desc 
 
 /*
-to do:
-convert frame to working hands
-make transition from it
-background see of hands
 
-
-
-create wins visual
-create win win
-
-
-
-//make timer back reverse
 
 new rule: timer against //timer diesnt get reset but reversed, and if it runs out on your side you get -score
+
+
 
 
 
@@ -122,7 +112,7 @@ func_menu_pause_create = function()
 	}
 
 #endregion
-#region genral display
+#region general display
 
 
 #region general display variation
@@ -133,24 +123,34 @@ gendisp_vari_count1 = 0; //counts from 0 - gamespeed
 gendisp_vari_count2 = 0; //
 global.gendisp_vari_t1 = 0; // t of count  for display needs
 global.gendisp_vari_t2 = 0; //
+
+
 //angle
-gendisp_vari_count_angle = 0; //max game_speed
-global.gendisp_vari_ang_t = 0;
+gendisp_vari_angle1 = 0; //a progress counter for an angle from 0 to 360 | speed depending on score_t | without score_t_sign
+gendisp_vari_angle2 = 0; //a progress counter for an angle from 0 to 360 | speed depending on score_t | with score_t_sign+
+gendisp_vari_angle1_max = global.Game_speed; //a progress counter for an angle from 0 to 360 | speed depending on score_t | without score_t_sign
+gendisp_vari_angle2_max = global.Game_speed*2.73; //a progress counter for an angle from 0 to 360 | speed depending on score_t | with score_t_sign+
+global.gendisp_vari_ang_t = 0;//angle multiplier without sign
+global.gendisp_vari_ang_ts = 0;//angle multiplier with sign including 0
+gendisp_vari_angle_min = 0.1; //max speed
+gendisp_vari_angle_max = 6; //min speed
 //channels
 global.gendisp_vari_channel1 = animcurve_get_channel(ac_gendisp_vari, 0); 
 global.gendisp_vari_channel2 = animcurve_get_channel(ac_gendisp_vari, 1);
 
 func_gendisp_calc = function()
 	{
-	gendisp_vari_count1 = (gendisp_vari_count1 + 1) mod global.Game_speed;//counts up by val(1) mods to gamespeed(1 second)
-	gendisp_vari_count2 = (gendisp_vari_count2 + 1) mod global.Game_speed;//
-	global.gendisp_vari_t1 = gendisp_vari_count1 / global.Game_speed;
-	global.gendisp_vari_t2 = gendisp_vari_count2 / global.Game_speed;
-	
-	
-	gendisp_vari_count_angle = (gendisp_vari_count_angle + (1 * global.Game_Score_t * global.Game_Score_t_sign)) mod global.Game_speed;//
-	global.gendisp_vari_ang_t = gendisp_vari_count_angle / global.Game_speed;//
-	
+	gendisp_vari_count1 = (gendisp_vari_count1 + 1) mod gendisp_vari_angle1_max;//counts up by val(1) mods to gamespeed(1 second)
+	gendisp_vari_count2 = (gendisp_vari_count2 + 1) mod gendisp_vari_angle2_max;//
+	global.gendisp_vari_t1 = gendisp_vari_count1 / gendisp_vari_angle1_max;
+	global.gendisp_vari_t2 = gendisp_vari_count2 / gendisp_vari_angle2_max;
+	//angle
+	var _spd = lerp(gendisp_vari_angle_min,gendisp_vari_angle_max,global.Game_Score_t);
+	gendisp_vari_angle1 = (gendisp_vari_angle1 + _spd) mod 360;//
+	_spd = lerp(gendisp_vari_angle_min,gendisp_vari_angle_max,global.Game_Score_t) * global.Game_Score_t_sign;
+	gendisp_vari_angle2 = (gendisp_vari_angle2 + _spd) mod 360;//
+	global.gendisp_vari_ang_t = gendisp_vari_angle1 / 360;//
+	global.gendisp_vari_ang_ts = gendisp_vari_angle2 / 360;//
 	}
 
 
@@ -218,11 +218,19 @@ all _t here is seen in a way that it describes the player who is winning
 f.e.  player 1 has low health ==  high Score_t and Score_t_sign == 0
 
 */
+//the vars
 global.Game_Score_t	= 0;		//percentual value of score	/display helper
 global.Game_Wins_t	= 0;		//percentual value of win		/display helper
-global.Game_Score_t_sign = 0;	//value multiplier for who is winning
+global.Game_Score_t_sign = 0;	//value multiplier for who is winning | 1==player 1 | 0==noone | -1==player 2
+global.Game_Score_t_signN0 = 0;	//no 0
 global.Game_Wins_t_sign	= 0;	//
-
+//_t
+func_score_t_sign_update = function(_sign) //checks if the Game_Score_t_sign is allowed to be 0 and handles accordingly
+	{
+	global.Game_Score_t_sign = _sign;	//value multiplier for who is winning
+	if _sign != 0
+	global.Game_Score_t_signN0 = _sign;	//no 0
+	}
 
 //score display
 //points
@@ -353,6 +361,9 @@ func_score_reset = function()
 			global.Game_Score = 0;
 		break;
 		}
+	//reset display vals
+	global.Game_Score_t	= 0;		//percentual value of score	/display helper
+	global.Game_Score_t_sign = 0;	//value multiplier for who is winning
 	}
 func_score_cleanup = function()
 	{
@@ -385,6 +396,10 @@ func_win_reset = function()
 		for(var i=0;i<global.Player_num;i++)
 			global.Game_Wins[i] = 0;
 		}
+	
+	//reset display vals
+	global.Game_Wins_t	= 0;		//percentual value of win		/display helper
+	global.Game_Wins_t_sign	= 0;	//
 	}
 func_win_cleanup = function()
 	{
@@ -446,12 +461,16 @@ func_game_score = function(_player,_outcome)
 func_game_win = function(_player)
 	{
 	show_debug_message("Win! player: "+string(_player));
+	/*
+	_player = player to win | player1 -> p==0 | player2 -> p==1
+	
+	*/
 	var _check;
 	switch( global.Game_Wins_against)
 		{
 		#region against
 		case true:
-			
+			//wins are calculated against | standart values applied: -2 - 0 - 2
 			// p == 0 ==> -1	|  p == 1 ==> +1
 			global.Game_Wins += Func_t_span(_player);
 			_check = abs(global.Game_Wins);
@@ -466,6 +485,8 @@ func_game_win = function(_player)
 		#endregion
 		}
 	
+	show_debug_message("Player "+string(_player)+" has "+string(_check)+" points!");
+	
 	//check for win win
 	if _check >= global.Game_Wins_needed
 		{
@@ -479,20 +500,16 @@ func_game_win_win = function(_player)
 	{
 	show_debug_message("Win Win!!! player: "+string(_player));
 	/*
-	
 	global.Game_Wins_against
-	
 	*/
-	
 	
 	func_game_end();
 	}
 
-
 #endregion
 #region game
 
-game_on = false;
+game_on = false;	//
 game_active = false; //if player can create hands
 
 func_game_setup = function()//sets up the game
@@ -699,6 +716,8 @@ func_game_player_action = function(_type,_player)
 				//if the score is high enough
 				if abs(global.Game_Score) >= global.Game_Score_needed
 					{
+					//winning player will have over 0 points
+					// 
 					func_game_win( global.Game_Score > 0 );
 					}
 			}
@@ -785,7 +804,7 @@ func_game_player_action_hand_eval = function(_id,_type,_player)
 #region countdown
 
 //countdown_time = global.Game_speed * 3;
-countdown_time = 30;
+countdown_time = 30;	//count town time untol game starts
 countdown_time_count = countdown_time;
 countdown_active = false;
 countdown_done = false;
@@ -1142,34 +1161,166 @@ func_input_react_func = function(_func) //go through all done inputs and execute
 #endregion
 #region window frame create
 
+enum WINDOWFRAME_TYPE
+	{
+	sprite,
+	live
+	}
+//frame_type = WINDOWFRAME_TYPE.sprite;
+frame_type = WINDOWFRAME_TYPE.live;
 frame_x = 0;
 frame_y = 0;
 frame_border = 20;
-var _surf = surface_create(global.Width + frame_border*2,global.Height + frame_border*2);
+
+#region live version vars
+//spaz / chanze t spaz out randomly, increases with score_t
+frame_hand_spazchance_min = 0.001;
+frame_hand_spazchance_max = 0.2;
+frame_hand_spazchance = 0;
+frame_hand_spaztime_min = 3;
+frame_hand_spaztime_max = 5;
+frame_hand_spaztime = 0;
+frame_hand_spazrange_min = 7;
+frame_hand_spazrange_max = 15;
+frame_hand_spazrange = 0;
+//reach /reacing out of the mouse
+frame_hand_reach_rfar = 70;
+frame_hand_reach_rclose = 20;//rage at wich the effect is maxxed
+frame_hand_reach_dist = 20;
+
+#endregion
+
 var _num = 90;
 var _num_w = (global.Width / (global.Width+global.Height)) * _num/2;
 var _num_h = (global.Height / (global.Width+global.Height)) * _num/2;
-var _border = 2;	//distance to room edge
+var _border = 0;//distance to room edge
 var _type = 0;
 var _x1 = -_border;
 var _y1 = -_border;
 var _x2 = global.Width + _border;
 var _y2 = global.Height + _border;
 
-var _func_draw_hand = function(_type,_t,_x,_y,_irot)
+#region specific stuff
+switch(frame_type)
+	{
+	#region sprite specific
+	case WINDOWFRAME_TYPE.sprite:
+		var _surf = surface_create(global.Width + frame_border*2,global.Height + frame_border*2);
+		
+		surface_set_target(_surf);
+	break;
+	#endregion
+	#region live specific
+	case WINDOWFRAME_TYPE.live:
+		
+		frame_list = ds_list_create();
+		
+		con_frame_hand = function(_type, _x, _y, _rot) constructor
+			{
+			
+			o_type = _type;	// original type
+			type = _type;	// type
+			o_x = _x;		// original x
+			x = _x;			// x
+			o_y = _y;		// original y
+			y = _y;			// y
+			o_rot = _rot;	// original rotation
+			rot = _rot;		// rotation
+			var _dist = sprite_get_width(spr_hand) + 5;
+			x2 = x + lengthdir_x(_dist,o_rot+180);	// get end arm position
+			y2 = y + lengthdir_y(_dist,o_rot+180);	// get end arm position
+			spaz_time = 0;	// time left to spaz
+			static mouse_dist = sprite_get_width(spr_hand)+5;
+			static safe_dist = sprite_get_height(spr_hand)/2;
+			
+			static func_step = function()
+				{
+				#region mouse interaction
+				
+				var _dist = point_distance(o_x,o_y,mouse_x,mouse_y);
+				var _rfar =	obj_game.frame_hand_reach_rfar;
+				
+				if _dist <= _rfar
+					{
+					//set type
+					//type = HAND_TYPE.open;
+					
+					var _dir = point_direction(o_x,o_y,mouse_x,mouse_y);
+				
+					var _rclose =	obj_game.frame_hand_reach_rclose;//rage at wich the effect is maxxed
+					var _rdist =	obj_game.frame_hand_reach_dist;
+				
+					var _t = clamp(Func_t_invert((_dist-_rclose) / (_rfar-_rclose)),0,1);
+					var _movedist = min(_rdist*_t,_dist-mouse_dist);
+					
+					x = o_x + lengthdir_x(_movedist,_dir);// x
+					y = o_y + lengthdir_y(_movedist,_dir);// y
+					
+					//rot = o_rot - angle_difference(o_rot,_dir) * max(clamp(_movedist/nearest,0,1), _t);//angle difference * distance moved towards screen
+					rot = o_rot - angle_difference(o_rot,_dir) * _t;//angle difference * distance moved towards screen
+					}
+				else
+					{
+					type = o_type;
+					x = o_x;// x
+					y = o_y;// y
+					rot = o_rot;
+					}
+				
+				#endregion
+				#region spaz
+				if spaz_time<=0
+					{
+					if Func_chance1(obj_game.frame_hand_spazchance)
+						{
+						spaz_time = obj_game.frame_hand_spaztime;
+						func_spaz();
+						}
+					}
+				else
+					func_spaz();
+				#endregion
+				}
+			static func_draw = function()
+				{
+				if !point_in_rectangle(x,y,-safe_dist,-safe_dist,global.Width+safe_dist,global.Height+safe_dist) //end of sprite shouldnt be on screen
+					Func_draw_hand(type, x, y, rot, 1, false);
+				else
+					//Func_draw_hand(type, x, y, rot, 0.5, false);
+					//Func_draw_hand_stretch(type, x2, y2, x, y, .5, false);
+					Func_draw_hand_arm(type, x2, y2, x, y, rot, 1, false);
+				}
+			
+			static func_spaz = function()//calcs spazim range
+				{
+				spaz_time--;
+				func_spaz_move(obj_game.frame_hand_spazrange);
+				}
+			static func_spaz_move = function(_range)//calcs spazim range
+				{
+				rot += random_range(-_range,_range);
+				}
+			}
+		
+	break;
+	#endregion
+	}
+#endregion
+
+var _func_frame_hand_place = function(_type,_t,_x,_y,_irot)
 	{
 	var _irot_even = _irot==0 or _irot==2;
 	var _angle_random = 7;
 	var _angle_max = 45;
-	var _curve_size_max = 17;
+	var _curve_size_max = 17;//
 	var _axis_primeary_rand = 2;	//primary axis random offset
-	var _axis_secondary_rand = 5;	//secondary axis random offset
-	
+	var _axis_secondary_rand = 3;	//secondary axis random offset
+			
 	var _p1x = global.Game_point_x;
 	var _p1y = global.Game_point_y;
 	var _rot;
 	#region add random
-	
+			
 	if _irot_even
 		{//prime y
 		_x += random_range(-_axis_secondary_rand,_axis_secondary_rand);
@@ -1185,25 +1336,35 @@ var _func_draw_hand = function(_type,_t,_x,_y,_irot)
 	//*
 	//add curve
 	if _irot_even
-		_x += animcurve_channel_evaluate(animcurve_get_channel(ac_border, "Hand_arc"),_t) * _curve_size_max * (_irot==0 ? -1 : 1);
+		_x += animcurve_channel_evaluate(animcurve_get_channel(ac_frame_hands, "position_arc"),_t) * _curve_size_max * (_irot==0 ? -1 : 1);
 	else
-		_y += animcurve_channel_evaluate(animcurve_get_channel(ac_border, "Hand_arc"),_t) * _curve_size_max * (_irot==3 ? -1 : 1);
+		_y += animcurve_channel_evaluate(animcurve_get_channel(ac_frame_hands, "position_arc"),_t) * _curve_size_max * (_irot==3 ? -1 : 1);
 	//*/
 	#endregion
 	#region rotation
 	_rot = _irot * 90;
-	
+			
 	_rot += Func_angle_approach(_rot,point_direction(_x,_y,_p1x,_p1y),_angle_max) + random_range(-_angle_random,_angle_random);
-	
+			
 	#endregion
-	draw_sprite_ext(spr_hand,_type,_x + frame_border,_y + frame_border,1,1,_rot,-1,1);
+	
+	switch(frame_type)
+		{
+		case WINDOWFRAME_TYPE.sprite:
+			draw_sprite_ext(spr_hand,_type,_x + frame_border,_y + frame_border,1,1,_rot,-1,1);
+		break;
+		case WINDOWFRAME_TYPE.live:
+			ds_list_add(frame_list, new con_frame_hand(_type, _x, _y, _rot));
+		break;
+		}
+	
 	return _type + 1;
 	}
 
-surface_set_target(_surf);
+//doing
+#region place loops
 var _xl,_yl,_t;
 
-#region draw loops
 //skip 0 for no duplicate hand drawing
 //top left to right
 for (var i=1;i<_num_w;i++)
@@ -1211,7 +1372,7 @@ for (var i=1;i<_num_w;i++)
 	_t = i/(_num_w-1);
 	_xl = lerp(_x1,_x2,_t);
 	
-	_type = _func_draw_hand(_type,_t,_xl,_y1,3);
+	_type = _func_frame_hand_place(_type,_t,_xl,_y1,3);
 	}
 
 //right up to down
@@ -1220,7 +1381,7 @@ for (var i=1;i<_num_h;i++)
 	_t = i/(_num_h-1);
 	_yl = lerp(_y1,_y2,_t);
 	
-	_type = _func_draw_hand(_type,_t,_x2,_yl,2);
+	_type = _func_frame_hand_place(_type,_t,_x2,_yl,2);
 	}
 
 //bottom right to left
@@ -1229,7 +1390,7 @@ for (var i=1;i<_num_w;i++)
 	_t = i/(_num_w-1);
 	_xl = lerp(_x2,_x1,_t);
 	
-	_type = _func_draw_hand(_type,_t,_xl,_y2,1);
+	_type = _func_frame_hand_place(_type,_t,_xl,_y2,1);
 	}
 
 //right up to down
@@ -1238,26 +1399,84 @@ for (var i=1;i<_num_h;i++)
 	_t = i/(_num_h-1);
 	_yl = lerp(_y2,_y1,_t);
 	
-	_type = _func_draw_hand(_type,_t,_x1,_yl,0);
+	_type = _func_frame_hand_place(_type,_t,_x1,_yl,0);
 	}
 #endregion
 
-//end
-surface_reset_target();
-frame_sprite = sprite_create_from_surface(_surf,0,0,surface_get_width(_surf),surface_get_height(_surf),false,false,0,0);
-surface_free(_surf);
-
+#region end
+switch(frame_type)
+	{
+	case WINDOWFRAME_TYPE.sprite:
+		surface_reset_target();
+		frame_sprite = sprite_create_from_surface(_surf,0,0,surface_get_width(_surf),surface_get_height(_surf),false,false,0,0);
+		surface_free(_surf);
+	break;
+	case WINDOWFRAME_TYPE.live:
+		delete con_frame_hand;
+	break;
+	}
+#endregion
 
 func_frame_move = function(_x,_y)
 	{
-	frame_x = _x;
-	frame_y = _y;
+	switch(frame_type)
+		{
+		case WINDOWFRAME_TYPE.sprite:
+			frame_x = _x;
+			frame_y = _y;
+		break;
+		case WINDOWFRAME_TYPE.live:
+			
+			var _size = ds_list_size(frame_list);
+			for(var i=0;i<_size;i++)
+				{
+				with(frame_list[| i])
+					{
+					x+=_x;
+					x+=_x;
+					}
+				}
+			
+		break;
+		}
 	}
 
+func_frame_step = function()
+	{
+	
+	switch(frame_type)
+		{
+		case WINDOWFRAME_TYPE.sprite:
+			
+		break;
+		case WINDOWFRAME_TYPE.live:
+			
+			var _size = ds_list_size(frame_list);
+			for(var i=0;i<_size;i++)
+				{
+				frame_list[| i].func_step();
+				}
+		break;
+		}
+	}
 func_frame_draw = function()
 	{
-	if sprite_exists(frame_sprite)
-		draw_sprite(frame_sprite,0,frame_x - frame_border,frame_y - frame_border);
+	
+	switch(frame_type)
+		{
+		case WINDOWFRAME_TYPE.sprite:
+			if sprite_exists(frame_sprite)
+				draw_sprite(frame_sprite,0,frame_x - frame_border,frame_y - frame_border);
+		break;
+		case WINDOWFRAME_TYPE.live:
+			
+			var _size = ds_list_size(frame_list);
+			for(var i=0;i<_size;i++)
+				{
+				frame_list[| i].func_draw();
+				}
+		break;
+		}
 	}
 
 #endregion
@@ -1297,6 +1516,8 @@ hand_casc_dist =	10; //minimum distance from middle point
 hand_casc_dist_vari_min =	5; //addative vrying distance from middle point
 hand_casc_dist_vari_max =	15; //addative vrying distance from middle point
 hand_casc_tcol =		.7;
+hand_casc_battle_min = 0;
+hand_casc_battle_max = 4;
 
 
 #endregion

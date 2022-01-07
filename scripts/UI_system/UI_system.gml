@@ -1,20 +1,36 @@
 
 
+#region info
+/*
 
+///////////////////////////////////////////////////////////////////
+
+concerning _create_func _draw_func _step_func:
+each function will be called in its respective event and known variables can be used.
+these variables are:
+	
+point_list			: ds_list, index	| list of points given/calculated
+text				: string			| the string set on creation of the element
+step_func			: function			| function given
+draw_func			: function			| function given
+
+group				: val, index		| the index of the group in the UI_Grid the element is part of
+group_enabled		: bool				| in group is enabled
+group_t				: val, multiplier	| transition of the group bwtween enabled and disabled
+
+returns index of the UI element struct
+///////////////////////////////////////////////////////////////////
+
+*/
+#endregion
 #region init
-enum UI_ELEMENT_INDEX
+
+enum UI_ELEMENT_EVENT_TYPE
 	{
-	group,
-	x1,
-	y1,
-	x2,
-	y2,
-	text,
-	draw_func,
-	step_func,
-	enum_height
+	create,
+	step,
+	draw
 	}
-UI_element_grid = ds_grid_create(UI_ELEMENT_INDEX.enum_height, 1);
 
 enum UI_GROUP_INDEX
 	{
@@ -30,14 +46,65 @@ enum UI_GROUP_INDEX
 UI_group_grid = ds_grid_create(UI_GROUP_INDEX.enum_height, 1);
 
 //set empty
-Func_DHP_grid_set_empty(UI_element_grid);
 Func_DHP_grid_set_empty(UI_group_grid);
+
+//constructor
+
+function Constructor_UI_element(_menu,_group,_text,_create_func,_step_func,_draw_func,_coord_or_list,_coord2=undefined) constructor
+	{
+	menu = _menu;	//menu "parent" | object the menu is reated from
+	group = _group;	//the group the UI element is part of
+	text = _text;	//text the element displayes
+	step_func = _step_func;
+	draw_func = _draw_func;
+	create_func = _create_func;
+	//creates and fills list 
+	point_list = -1;
+	#region get point list
+	if is_undefined(_coord2)
+		{
+		point_list = _coord_or_list;
+		}
+	else
+		{
+		point_list = ds_list_create();
+		var _num = argument_count;
+		for (var i=6;i<_num;i++)
+			{
+			ds_list_add(point_list,argument[i]);
+			}
+		}
+	#endregion
+	
+	//functions
+	func_doEvent = function(_event_type)
+		{
+		switch(_event_type)
+			{
+			case UI_ELEMENT_EVENT_TYPE.create:	if create_func != -1	create_func();	break;
+			case UI_ELEMENT_EVENT_TYPE.step:	if step_func != -1		step_func();	break;
+			case UI_ELEMENT_EVENT_TYPE.draw:	if draw_func != -1		draw_func();	break;
+			}
+		}
+	func_check_point = function(_x,_y)
+		{
+		return Func_polyUI_point_in_poly(_x,_y,point_list);
+		}
+	func_get_group_t = function()
+		{
+		return menu.UI_group_grid[# UI_GROUP_INDEX.trans, group];
+		}
+	
+	//end
+	func_doEvent(UI_ELEMENT_EVENT_TYPE.create);
+	}
+
 
 #endregion
 
 /////////usables///////////////
 //elements
-function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_step_func,_draw_func)
+function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_create_func,_step_func,_draw_func)
 	{
 	/*
 	_group		| index		| the group the element belongs too
@@ -49,56 +116,99 @@ function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_step_func,_draw_func)
 	_draw_func	| function	| the function to call in the draw event	or -1 for no function
 	_step_func	| function	| the function to call in the step event	or -1 for no function
 	
-	///////////////////////////////////////////////////////////////////
+	*/
 	
-	concerning _draw_func _step_func:
-	each function will be called in its respective event and will be handed variables that can be used.
-	these variables are:
-	
-	_x1 _y1 _x2 _y2		: val	| the 4 posititions set on creation of the element + the master position given to the Func_UI_step or Func_UI_draw
-	_index				: val	| the index if the element in the UI_Grid
-	_str				: string| the string set on creation of the element
-	_g_enabled			: bool	| in group is enabled
-	_gt					: val	| transition of the group bwtween enabled and disabled
-	
-	returns index in UI_element_grid
-	///////////////////////////////////////////////////////////////////
+	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_x1,_y1,_x2,_y1, _x2,_y2,_x1,_y2);
+	//add to group list
+	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
+	return _inst;
+	}
+function Func_UI_add_element_ext(_group,_x,_y,_w,_h,_r,_text,_create_func,_step_func,_draw_func)
+	{
+	/*
+	_group		| index		| the group the element belongs too
+	_x			| val		| middle x coordiante
+	_y			| val		| middle y coordiante
+	_w			| val		| width of the element
+	_h			| val		| height of the element
+	_r			| val		| rotation of the element
+	_text		| string	| the text to display
+	_draw_func	| function	| the function to call in the draw event	or -1 for no function
+	_step_func	| function	| the function to call in the step event	or -1 for no function
 	
 	*/
-	var _index = Func_DHP_grid_expand_one(UI_element_grid,false);
 	
-	UI_element_grid[# UI_ELEMENT_INDEX.group			, _index] = _group;
-	UI_element_grid[# UI_ELEMENT_INDEX.x1				, _index] = _x1;
-	UI_element_grid[# UI_ELEMENT_INDEX.y1				, _index] = _y1;
-	UI_element_grid[# UI_ELEMENT_INDEX.x2				, _index] = _x2;
-	UI_element_grid[# UI_ELEMENT_INDEX.y2				, _index] = _y2;
-	UI_element_grid[# UI_ELEMENT_INDEX.text				, _index] = _text;
-	UI_element_grid[# UI_ELEMENT_INDEX.step_func		, _index] = _step_func;
-	UI_element_grid[# UI_ELEMENT_INDEX.draw_func		, _index] = _draw_func;
+	//calc some stuff
 	
-	//add to group
-	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _index);
+	var _dist = point_distance(_x,_y,_x+_w/2,_y+_h/2)
+	var _dir;
+	//top left
+	_dir = point_direction(_x,_y,_x-_w/2,_y-_h/2) + _r;
+	var _x1 = _x + lengthdir_x(_dist,_dir);
+	var _y1 = _y + lengthdir_y(_dist,_dir);
+	//top right
+	_dir = point_direction(_x,_y,_x+_w/2,_y-_h/2) + _r;
+	var _x2 = _x + lengthdir_x(_dist,_dir);
+	var _y2 = _y + lengthdir_y(_dist,_dir);
+	//bottom right
+	_dir = point_direction(_x,_y,_x+_w/2,_y+_h/2) + _r;
+	var _x3 = _x + lengthdir_x(_dist,_dir);
+	var _y3 = _y + lengthdir_y(_dist,_dir);
+	//bottom left
+	_dir = point_direction(_x,_y,_x-_w/2,_y+_h/2) + _r;
+	var _x4 = _x + lengthdir_x(_dist,_dir);
+	var _y4 = _y + lengthdir_y(_dist,_dir);
 	
-	return _index;
+	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_x1,_y1,_x2,_y2,_x3,_y3,_x4,_y4);
+	//add to group list
+	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
+	return _inst;
+	}
+function Func_UI_add_element_poly(_group,_text,_create_func,_step_func,_draw_func,coords)
+	{
+	/*
+	_group		| index		| the group the element belongs too
+	_text		| string	| the text to display
+	_create_func| function	| function that acts like an additional create event for the element	or -1 for no function
+	_step_func	| function	| the function to call in the step event	or -1 for no function
+	_draw_func	| function	| the function to call in the draw event	or -1 for no function
+	
+	_x1			| val		| x coord of a point
+	_y1			| val		| y coord of a point
+	...
+	infinite amount of points can be allocated, as long as they come in x&y pairs
+	*/
+	
+	var _list = ds_list_create();
+	
+	for (var i=5;i<argument_count;i++)
+		{
+		ds_list_add(_list,argument[i]);
+		}
+	
+	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_list);
+	//add to group list
+	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
+	return _inst;
 	}
 
-function Func_UI_callfunc(_index,_func_index,_master_x,_master_y)
+function Func_UI_delete_element(_struct_index)
 	{
-	var _func = UI_element_grid[# _func_index, _index];
-	
-	if _func != -1
+	delete _struct_index;
+	}
+
+function Func_UI_callevent(_struct_index,_event_index)
+	{
+	_struct_index.func_doEvent(_event_index)
+	}
+function Func_UI_groupcallevent(_group_index,_event_index)
+	{
+	//go through all elements in one group and call event given
+	var _list = UI_group_grid[# UI_GROUP_INDEX.element_list, _group_index];
+	var _size = ds_list_size(_list)
+	for(var i=0; i<_size;i++)
 		{
-		var _x1 =	UI_element_grid[# UI_ELEMENT_INDEX.x1,		_index] + _master_x;
-		var _y1 =	UI_element_grid[# UI_ELEMENT_INDEX.y1,		_index] + _master_y;
-		var _x2 =	UI_element_grid[# UI_ELEMENT_INDEX.x2,		_index] + _master_x;
-		var _y2 =	UI_element_grid[# UI_ELEMENT_INDEX.y2,		_index] + _master_y;
-		var _str =	UI_element_grid[# UI_ELEMENT_INDEX.text,	_index];
-		
-		var _group = UI_element_grid[# UI_ELEMENT_INDEX.group,		_index];
-		var _g_enabled =	UI_group_grid[# UI_GROUP_INDEX.enabled,	_group];
-		var _gt =			UI_group_grid[# UI_GROUP_INDEX.trans,	_group];
-		
-		_func(_x1,_y1,_x2,_y2,_index,_str,_g_enabled,_gt);
+		Func_UI_callevent(_list[| i],_event_index);
 		}
 	}
 
@@ -145,13 +255,8 @@ function Func_UI_step(_master_x,_master_y)
 	{
 	Func_UI_group_calc();
 	
-	var _height = ds_grid_height(UI_element_grid);
-	for(var i=0;i<_height;i++)
-		{
-		var _group = UI_element_grid[# UI_ELEMENT_INDEX.group, i];
-		if (UI_group_grid[# UI_GROUP_INDEX.progress, _group] > 0) and (UI_group_grid[# UI_GROUP_INDEX.enabled, _group] or UI_group_grid[# UI_GROUP_INDEX.dis_step, _group])
-			Func_UI_callfunc(i,UI_ELEMENT_INDEX.step_func,_master_x,_master_y);
-		
+	var _height = ds_grid_height(UI_group_grid)
+	for(var i=0; i<_height;i++)
 		#region info
 		/*
 		| enabled| display	| p > 0	 | wanted |
@@ -174,19 +279,23 @@ function Func_UI_step(_master_x,_master_y)
 		|--------|----------|--------|--------|
 		*/
 		#endregion
-		}
+		//if group should be active
+		if UI_group_grid[# UI_GROUP_INDEX.enabled, i] or (UI_group_grid[# UI_GROUP_INDEX.dis_step, i] and (UI_group_grid[# UI_GROUP_INDEX.progress, i] > 0))
+			{
+			Func_UI_groupcallevent(i,UI_ELEMENT_EVENT_TYPE.step);
+			}
 	}
 
 //needs to be done every draw event
 function Func_UI_draw(_master_x,_master_y)
 	{
-	var _height = ds_grid_height(UI_element_grid);
-	for(var i=0;i<_height;i++)
-		{
-		var _group = UI_element_grid[# UI_ELEMENT_INDEX.group, i];
-		if UI_group_grid[# UI_GROUP_INDEX.enabled, _group] or (UI_group_grid[# UI_GROUP_INDEX.dis_draw, _group] and (UI_group_grid[# UI_GROUP_INDEX.progress, _group] > 0))
-			Func_UI_callfunc(i,UI_ELEMENT_INDEX.draw_func,_master_x,_master_y);
-		}
+	var _height = ds_grid_height(UI_group_grid)
+	for(var i=0; i<_height;i++)
+		//if group should be active
+		if UI_group_grid[# UI_GROUP_INDEX.enabled, i] or (UI_group_grid[# UI_GROUP_INDEX.dis_draw, i] and (UI_group_grid[# UI_GROUP_INDEX.progress, i] > 0))
+			{
+			Func_UI_groupcallevent(i,UI_ELEMENT_EVENT_TYPE.draw);
+			}
 	}
 
 //put into cleanup event
@@ -194,9 +303,17 @@ function Func_UI_cleanup()
 	{
 	var _height = ds_grid_height(UI_group_grid)
 	for(var i=0; i<_height;i++)
-		ds_list_destroy(UI_group_grid[# UI_GROUP_INDEX.element_list, i])
+		{
+		var _list = UI_group_grid[# UI_GROUP_INDEX.element_list, i]
+		var _size = ds_list_size(_list)
+		for(var ii=0; ii<_size;ii++)
+			{
+			Func_UI_delete_element( _list[| ii]);
+			}
+		
+		ds_list_destroy(_list);
+		}
 	
-	ds_grid_destroy(UI_element_grid);
 	ds_grid_destroy(UI_group_grid);
 	}
 

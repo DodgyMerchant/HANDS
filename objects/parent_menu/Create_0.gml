@@ -8,7 +8,6 @@ UI_system();
 
 #endregion
 
-
 //general menu stuff
 group_speed = global.Game_speed * 0.3;
 
@@ -16,7 +15,8 @@ group_speed = global.Game_speed * 0.3;
 menu_vari_dist_min = 0.5;
 menu_vari_dist_max = 3;
 menu_vari_dist = 0;
-menu_vari_precision_dist = 20;
+menu_vari_precision_dist = 40;
+menu_shudder_max = 0.7; //shudder displayed if mouse hovers over menu ellement
 //mouse menu system
 
 menu_selected = -1;
@@ -54,7 +54,7 @@ function Func_menu_update_mouse_select()
 	{
 	if menu_selected != -1
 		//check if enabled
-		if UI_group_grid[# UI_GROUP_INDEX.enabled, UI_element_grid[# UI_ELEMENT_INDEX.group, menu_selected] ] == true
+		if UI_group_grid[# UI_GROUP_INDEX.enabled, menu_selected.group ] == true
 		if func_menu_check_element_mouse_select(menu_selected)
 			return menu_selected;
 	
@@ -75,7 +75,7 @@ func_menu_find_mouse_select = function()
 			for(var ii=0;ii<_size;ii++)//go through all elements in group
 				{
 				var _index = _list[| ii];
-			
+				
 				if func_menu_check_element_mouse_select(_index)
 					return _index;
 				}
@@ -83,13 +83,17 @@ func_menu_find_mouse_select = function()
 		}
 	return -1;
 	}
-func_menu_check_element_mouse_select = function(_index)
+func_menu_check_element_mouse_select = function(_struct_index)
 	{
-	return point_in_rectangle(mouse_x,mouse_y,
-	UI_element_grid[# UI_ELEMENT_INDEX.x1, _index],
-	UI_element_grid[# UI_ELEMENT_INDEX.y1, _index],
-	UI_element_grid[# UI_ELEMENT_INDEX.x2, _index],
-	UI_element_grid[# UI_ELEMENT_INDEX.y2, _index]);
+	with(_struct_index)
+		{
+		if step_func!=-1
+			{
+			return func_check_point(mouse_x,mouse_y);
+			}
+		else
+			return false;
+		}
 	}
 
 //action
