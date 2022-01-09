@@ -5,8 +5,8 @@
   "spriteMaskId": null,
   "persistent": false,
   "parentObjectId": {
-    "name": "parent_menu",
-    "path": "objects/parent_menu/parent_menu.yy",
+    "name": "parent_mymenu",
+    "path": "objects/parent_mymenu/parent_mymenu.yy",
   },
   "physicsObject": false,
   "physicsSensor": false,

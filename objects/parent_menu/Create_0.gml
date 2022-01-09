@@ -74,10 +74,10 @@ func_menu_find_mouse_select = function()
 			var _size = ds_list_size(_list);
 			for(var ii=0;ii<_size;ii++)//go through all elements in group
 				{
-				var _index = _list[| ii];
+				var _struct_index = _list[| ii];
 				
-				if func_menu_check_element_mouse_select(_index)
-					return _index;
+				if func_menu_check_element_mouse_select(_struct_index)
+					return _struct_index;
 				}
 			}
 		}
@@ -89,7 +89,7 @@ func_menu_check_element_mouse_select = function(_struct_index)
 		{
 		if step_func!=-1
 			{
-			return func_check_point(mouse_x,mouse_y);
+			return func_UIES_check_point(mouse_x,mouse_y);
 			}
 		else
 			return false;

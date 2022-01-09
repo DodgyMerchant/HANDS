@@ -5,38 +5,56 @@
 function Func_button_create_func()
 	{
 	//create points
-	x1 = point_list[| 0];//left top
-	y1 = point_list[| 1];
-	x2 = point_list[| 2];//right top
-	y2 = point_list[| 3];
-	x3 = point_list[| 4];//right bottom
-	y3 = point_list[| 5];
-	x4 = point_list[| 6];//left bottom
-	y4 = point_list[| 7];
-	
-	var _lmid_x = min(x4,x1) + abs(x4 - x1)/2;
-	var _lmid_y = min(y4,y1) + abs(y4 - y1)/2;
-	var _rmid_x = min(x3,x2) + abs(x3 - x2)/2;
-	var _rmid_y = min(y3,y2) + abs(y3 - y2)/2;
-	
-	mid_x = min(_lmid_x,_rmid_x) + abs(_lmid_x - _rmid_x)/2;
-	mid_y = min(_lmid_y,_rmid_y) + abs(_lmid_y - _rmid_y)/2;
-	rot = point_direction(_lmid_x,_lmid_y,_rmid_x,_rmid_y);
 	
 	
-	var _dist = 20;
-	offscreen_x = _lmid_x + lengthdir_x(_dist, rot+180);
-	offscreen_y = _lmid_y + lengthdir_y(_dist, rot+180);
 	
-	hand_w = sprite_get_width(spr_hand);
+	
+	
 	}
 
 function Func_button_draw_main()
 	{
 	
+	var _selected = func_UIES_check_selected();
+	
+	#region hand type
+	var _type;
+	if step_func == -1
+		_type = HAND_TYPE.point;
+	else
+		_type = (_selected ? HAND_TYPE.open : HAND_TYPE.fist);
+	#endregion
+	
+	
+	//score multiplier
+	var _tension = 1+global.Game_Score_t;
+	
+	
+	//display text
+	draw_set_color(c_orange);
+	
+	
+	draw_line(x1,y1,x2,y2);
+	draw_line(x2,y2,x3,y3);
+	draw_line(x3,y3,x4,y4);
+	draw_line(x4,y4,x1,y1);
+	draw_circle(x1, y1, 5,true);
+	draw_circle(x2, y2, 5,true);
+	draw_circle(x3, y3, 5,true);
+	draw_circle(x4, y4, 5,true);
+	draw_line(mid_x, mid_y, offscreen_x, offscreen_y);
+	
+	
+	//normal
+	Func_draw_hand_stretch(_type, offscreen_x, offscreen_y, midend_x, midend_y, 1, true);
+	draw_text_transformed(midbegin_x, midbegin_y ,text, 1, 1, rot);
+	}
+function Func_button_draw_mainOLD()
+	{
+	
 	//x2 = max(x1 + string_width(_str),x2 - hand_w); //end position = self or fit to string length
 	
-	var _selected = menu.menu_selected == self;
+	var _selected = func_UIES_check_selected();
 	
 	#region
 	var _type;

@@ -74,13 +74,13 @@ func_pausemenu_int_to_main = function(_x1,_y1,_x2,_y2,_index)
 
 var _x = _disp_x;
 var _y = _disp_y;
-Func_UI_add_element(pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Game Paused",-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Game Paused",-1,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
-Func_UI_add_element(pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Return",func_pausemenu_int_return,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Return",func_pausemenu_int_return,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
-Func_UI_add_element(pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Exit to menu",func_pausemenu_int_to_main,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Exit to menu",func_pausemenu_int_to_main,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
 

@@ -50,35 +50,23 @@ Func_DHP_grid_set_empty(UI_group_grid);
 
 //constructor
 
-function Constructor_UI_element(_menu,_group,_text,_create_func,_step_func,_draw_func,_coord_or_list,_coord2=undefined) constructor
+function Constructor_UI_element(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	menu = _menu;	//menu "parent" | object the menu is reated from
 	group = _group;	//the group the UI element is part of
 	text = _text;	//text the element displayes
-	step_func = _step_func;
-	draw_func = _draw_func;
-	create_func = _create_func;
+	step_func =		(_step_func==-1 ?	-1 : method(undefined, _step_func));
+	draw_func =		(_draw_func==-1 ?	-1 : method(undefined, _draw_func));
+	create_func =	(_create_func==-1 ?	-1 : method(undefined, _create_func));
 	//creates and fills list 
-	point_list = -1;
-	#region get point list
-	if is_undefined(_coord2)
-		{
-		point_list = _coord_or_list;
-		}
-	else
-		{
-		point_list = ds_list_create();
-		var _num = argument_count;
-		for (var i=6;i<_num;i++)
-			{
-			ds_list_add(point_list,argument[i]);
-			}
-		}
-	#endregion
+	point_list = _point_list;
+	index = 0; //my index
 	
 	//functions
-	func_doEvent = function(_event_type)
+	static func_UIES_doEvent = function(_event_type)
 		{
+		func_UIES_get_group_t();
+		
 		switch(_event_type)
 			{
 			case UI_ELEMENT_EVENT_TYPE.create:	if create_func != -1	create_func();	break;
@@ -86,27 +74,89 @@ function Constructor_UI_element(_menu,_group,_text,_create_func,_step_func,_draw
 			case UI_ELEMENT_EVENT_TYPE.draw:	if draw_func != -1		draw_func();	break;
 			}
 		}
-	func_check_point = function(_x,_y)
+	static func_UIES_check_point = function(_x,_y)
 		{
 		return Func_polyUI_point_in_poly(_x,_y,point_list);
 		}
-	func_get_group_t = function()
+	static func_UIES_get_group_t = function()
 		{
 		return menu.UI_group_grid[# UI_GROUP_INDEX.trans, group];
 		}
+	static func_UIES_check_selected = function()//checks for menu player position
+		{
+		return menu.menu_selected==index;
+		}
+	static func_UIES_check_action = function()//checks for menu player interaction
+		{
+		return menu.menu_action;//==true
+		}
+	static func_UIES_check_selaction = function()//checks for menu player position and interaction -> if player clicked on it
+		{
+		return func_UIES_check_action() and func_UIES_check_selected();
+		}
 	
 	//end
-	func_doEvent(UI_ELEMENT_EVENT_TYPE.create);
+	func_UIES_doEvent(UI_ELEMENT_EVENT_TYPE.create);
 	}
-
+function Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,_points_or_List,_list_o_x1,_y1,_pointsInf)
+	{
+	/*
+	NOT FOR USE IN CODE ONLY IN RESPECTIVE FUNTIONS
+	
+	
+	_points_or_List		| bool	| true -> list of points in folliwing arguments / false -> list index in next argument
+	
+	*/
+	
+	#region point list stuff
+	var _point_list;
+	switch(_points_or_List)
+		{
+		case true:
+			//make point list
+			_point_list = ds_list_create();
+			var _num = argument_count;
+			for (var i=7;i<_num;i++)
+				{
+				ds_list_add(_point_list,argument[i]);
+				}
+		break;
+		case false:
+			//is aalready a list
+			_point_list = _list_o_x1;
+		break;
+		}
+	#endregion
+	
+	if _constructor==-1
+		_constructor = Constructor_UI_element;
+	
+	var _inst = new _constructor(id,_group,_text,_create_func,_step_func,_draw_func,_point_list);
+	
+	//add to group list
+	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
+	
+	//set stuff only here can be done
+	with(_inst)
+		{
+		index = _inst;
+		/* for some reason the struct has no ID or if an insatnce actrs through the strucs the "id", if not set, will be the id of the operating object
+		// this causes a bunch of identification problems
+		*/
+		}
+	
+	//return
+	return _inst;
+	}
 
 #endregion
 
 /////////usables///////////////
 //elements
-function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_create_func,_step_func,_draw_func)
+function Func_UI_add_element(_constructor,_group,_x1,_y1,_x2,_y2,_text,_create_func,_step_func,_draw_func)
 	{
 	/*
+	_constructor| constructor	| index of the custom contructor to use or -1 for premade default
 	_group		| index		| the group the element belongs too
 	_x1			| val		| the top left position of the button
 	_y1			| val		| the top left position of the button
@@ -117,15 +167,12 @@ function Func_UI_add_element(_group,_x1,_y1,_x2,_y2,_text,_create_func,_step_fun
 	_step_func	| function	| the function to call in the step event	or -1 for no function
 	
 	*/
-	
-	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_x1,_y1,_x2,_y1, _x2,_y2,_x1,_y2);
-	//add to group list
-	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
-	return _inst;
+	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,true,_x1,_y1,_x2,_y1, _x2,_y2,_x1,_y2);
 	}
-function Func_UI_add_element_ext(_group,_x,_y,_w,_h,_r,_text,_create_func,_step_func,_draw_func)
+function Func_UI_add_element_ext(_constructor,_group,_x,_y,_w,_h,_r,_text,_create_func,_step_func,_draw_func)
 	{
 	/*
+	_constructor| constructor	| index of the custom contructor to use or -1 for premade default
 	_group		| index		| the group the element belongs too
 	_x			| val		| middle x coordiante
 	_y			| val		| middle y coordiante
@@ -159,37 +206,32 @@ function Func_UI_add_element_ext(_group,_x,_y,_w,_h,_r,_text,_create_func,_step_
 	var _x4 = _x + lengthdir_x(_dist,_dir);
 	var _y4 = _y + lengthdir_y(_dist,_dir);
 	
-	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_x1,_y1,_x2,_y2,_x3,_y3,_x4,_y4);
-	//add to group list
-	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
-	return _inst;
+	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,true,_x1,_y1,_x2,_y2,_x3,_y3,_x4,_y4);
 	}
-function Func_UI_add_element_poly(_group,_text,_create_func,_step_func,_draw_func,coords)
+function Func_UI_add_element_poly(_constructor,_group,_text,_create_func,_step_func,_draw_func,coords)
 	{
 	/*
-	_group		| index		| the group the element belongs too
-	_text		| string	| the text to display
-	_create_func| function	| function that acts like an additional create event for the element	or -1 for no function
-	_step_func	| function	| the function to call in the step event	or -1 for no function
-	_draw_func	| function	| the function to call in the draw event	or -1 for no function
+	_constructor| constructor	| index of the custom contructor to use or -1 for premade default
+	_group		| index			| the group the element belongs too
+	_text		| string		| the text to display
+	_create_func| function		| function that acts like an additional create event for the element	or -1 for no function
+	_step_func	| function		| the function to call in the step event	or -1 for no function
+	_draw_func	| function		| the function to call in the draw event	or -1 for no function
 	
-	_x1			| val		| x coord of a point
-	_y1			| val		| y coord of a point
+	_x1			| val			| x coord of a point
+	_y1			| val			| y coord of a point
 	...
 	infinite amount of points can be allocated, as long as they come in x&y pairs
 	*/
 	
 	var _list = ds_list_create();
 	
-	for (var i=5;i<argument_count;i++)
+	for (var i=6;i<argument_count;i++)
 		{
 		ds_list_add(_list,argument[i]);
 		}
 	
-	var _inst = new Constructor_UI_element(id,_group,_text,_create_func,_step_func,_draw_func,_list);
-	//add to group list
-	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
-	return _inst;
+	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,false,_list);
 	}
 
 function Func_UI_delete_element(_struct_index)
@@ -199,7 +241,7 @@ function Func_UI_delete_element(_struct_index)
 
 function Func_UI_callevent(_struct_index,_event_index)
 	{
-	_struct_index.func_doEvent(_event_index)
+	_struct_index.func_UIES_doEvent(_event_index)
 	}
 function Func_UI_groupcallevent(_group_index,_event_index)
 	{
@@ -333,3 +375,5 @@ function Func_UI_group_calc()
 		UI_group_grid[# UI_GROUP_INDEX.trans	,i] = _val / _time;
 		}
 	}
+
+

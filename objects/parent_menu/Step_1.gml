@@ -15,7 +15,7 @@ if menu_selected != -1
 	}
 else
 	{
-	menu_action = false; //if clicked/interacted
+	//menu_action = false; //if clicked/interacted
 	}
 
 #endregion

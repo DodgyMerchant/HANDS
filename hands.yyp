@@ -33,6 +33,7 @@
     {"id":{"name":"obj_score_health","path":"objects/obj_score_health/obj_score_health.yy",},"order":1,},
     {"id":{"name":"obj_menu_pause","path":"objects/obj_menu_pause/obj_menu_pause.yy",},"order":1,},
     {"id":{"name":"snd_sfx_timer_over","path":"sounds/snd_sfx_timer_over/snd_sfx_timer_over.yy",},"order":1,},
+    {"id":{"name":"parent_mymenu","path":"objects/parent_mymenu/parent_mymenu.yy",},"order":5,},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},"order":0,},
   ],
   "Options": [

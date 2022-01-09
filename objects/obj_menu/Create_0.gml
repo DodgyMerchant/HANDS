@@ -7,6 +7,10 @@ func_menu_game_start = function()
 	obj_game.func_game_setup();
 	
 	}
+func_menu_game_end = function()
+	{
+	game_end();
+	}
 
 #region UI
 
@@ -32,7 +36,7 @@ menu_selected == index of the hovered over menu element
 menu_action == true if action taken ()atm only mb_left
 
 
-if menu_action and menu_selected==i
+if func_UIES_check_selaction()
 
 _x1,_y1,_x2,_y2,_index,_str,_g_enabled,_gt
 */
@@ -41,7 +45,8 @@ _x1,_y1,_x2,_y2,_index,_str,_g_enabled,_gt
 
 func_button_int_start = function()
 	{
-	if menu_action and menu_selected == other.id
+	if func_UIES_check_selaction()
+	with(menu)
 		{
 		func_menu_game_start();
 		Func_UI_group_enable(manu_group_main,false);
@@ -52,19 +57,21 @@ func_button_int_start = function()
 	}
 func_button_int_end = function()
 	{
-	if (menu_action and menu_selected==other.id) or keyboard_check_pressed(vk_escape)
-		game_end();
+	if func_UIES_check_selaction() or keyboard_check_pressed(vk_escape)
+		with(menu) func_menu_game_end();
 	}
 
 func_button_int_switch_group = function()
 	{
 	var _back = keyboard_check_pressed(vk_escape);
+	var _index = index;
 	
-	if (menu_action and menu_selected==i) or _back
+	if func_UIES_check_selaction() or _back
+	with(menu)
 		{
 		//dont know how to do it better am :(
 		if _back
-			switch(i)
+			switch(_index)
 				{
 				case menu_element_opt_swMain:
 					Func_menu_group_switch(manu_group_main,manu_group_options);
@@ -80,7 +87,7 @@ func_button_int_switch_group = function()
 				break;
 				}
 		else
-			switch(i)
+			switch(_index)
 				{
 				case menu_element_opt_swMain:
 				case menu_element_main_swOpt:
@@ -104,7 +111,7 @@ func_button_int_switch_group = function()
 
 func_button_int_options = function()
 	{
-	var _id = id;
+	var _id = index;
 	var _str = text;
 	with(menu)
 		{
@@ -264,15 +271,15 @@ var _x = _button_x;
 var _y = _button_y;
 var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
-Func_UI_add_element(manu_group_main,_x + 5,_y,_x2,_y2,"Start",Func_button_create_func,func_button_int_start,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_main,_x + 5,_y,_x2,_y2,"Start",Func_button_create_func,func_button_int_start,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-menu_element_main_swOpt = Func_UI_add_element(manu_group_main,_x,_y,_x2,_y2,"Options",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_main_swOpt = Func_UI_add_element(Constructor_UIP_element,manu_group_main,_x,_y,_x2,_y2,"Options",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-Func_UI_add_element(manu_group_main,_x,_y,_x2,_y2,"Exit",Func_button_create_func,func_button_int_end,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_main,_x,_y,_x2,_y2,"Exit",Func_button_create_func,func_button_int_end,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 #endregion
@@ -289,22 +296,22 @@ manu_group_options = Func_UI_create_group(false,0,group_speed,false,true);
 
 
 
-Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Game Rules",Func_button_create_func,-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Game Rules",Func_button_create_func,-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_opt_swMain = Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_opt_swMain = Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_opt_swWin = Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Winning",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_opt_swWin = Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Winning",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_opt_swScoHeal = Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Score and Health",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_opt_swScoHeal = Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Score and Health",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_opt_swGame = Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Gameplay",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_opt_swGame = Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Gameplay",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_opt_reset = Func_UI_add_element(manu_group_options,_x,_y,_x2,_y2,"Reset",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_opt_reset = Func_UI_add_element(Constructor_UIP_element,manu_group_options,_x,_y,_x2,_y2,"Reset",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
@@ -320,18 +327,18 @@ var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
 manu_group_optWin = Func_UI_create_group(false,0,group_speed,false,true);
 
-Func_UI_add_element(manu_group_optWin,_x,_y,_x2,_y2,"Options: Winning",Func_button_create_func,-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_optWin,_x,_y,_x2,_y2,"Options: Winning",Func_button_create_func,-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_optWin_swOpt = Func_UI_add_element(manu_group_optWin,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
+menu_element_optWin_swOpt = Func_UI_add_element(Constructor_UIP_element,manu_group_optWin,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 //global.Game_Wins_needed	// 
-menu_element_optWin_needed = Func_UI_add_element(manu_group_optWin,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optWin_needed = Func_UI_add_element(Constructor_UIP_element,manu_group_optWin,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 //global.Game_Wins_against	// bool
-menu_element_optWin_against = Func_UI_add_element(manu_group_optWin,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optWin_against = Func_UI_add_element(Constructor_UIP_element,manu_group_optWin,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 //*/
@@ -346,22 +353,22 @@ var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
 manu_group_optScoHeal = Func_UI_create_group(false,0,group_speed,false,true);
 
-Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"Options: Score and Health",Func_button_create_func,-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_optScoHeal,_x,_y,_x2,_y2,"Options: Score and Health",Func_button_create_func,-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_optScoHe_swOpt = Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
-_y	= _y2 + _button_sep;
-_y2 = _y + _button_h;
-
-menu_element_optScoHe_scoType = Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optScoHe_swOpt = Func_UI_add_element(Constructor_UIP_element,manu_group_optScoHeal,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-menu_element_optScoHe_scoNeed = Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optScoHe_scoType = Func_UI_add_element(Constructor_UIP_element,manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-menu_element_optScoHe_helMax = Func_UI_add_element(manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optScoHe_scoNeed = Func_UI_add_element(Constructor_UIP_element,manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+_y	= _y2 + _button_sep;
+_y2 = _y + _button_h;
+
+menu_element_optScoHe_helMax = Func_UI_add_element(Constructor_UIP_element,manu_group_optScoHeal,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 //*/
@@ -376,22 +383,22 @@ var _x2 = _x + _button_w;
 var _y2 = _y + _button_h;
 manu_group_optGame = Func_UI_create_group(false,0,group_speed,false,true);
 
-Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"Options: Gameplay",Func_button_create_func,-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_optGame,_x,_y,_x2,_y2,"Options: Gameplay",Func_button_create_func,-1,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
-menu_element_optGame_swOpt = Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
-_y	= _y2 + _button_sep;
-_y2 = _y + _button_h;
-
-menu_element_optGame_timer = Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optGame_swOpt = Func_UI_add_element(Constructor_UIP_element,manu_group_optGame,_x,_y,_x2,_y2,"Back",Func_button_create_func,func_button_int_switch_group,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-menu_element_optGame_timTime = Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optGame_timer = Func_UI_add_element(Constructor_UIP_element,manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 
-menu_element_optGame_Hand = Func_UI_add_element(manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+menu_element_optGame_timTime = Func_UI_add_element(Constructor_UIP_element,manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
+_y	= _y2 + _button_sep;
+_y2 = _y + _button_h;
+
+menu_element_optGame_Hand = Func_UI_add_element(Constructor_UIP_element,manu_group_optGame,_x,_y,_x2,_y2,"",Func_button_create_func,func_button_int_options,Func_button_draw_main);
 _y	= _y2 + _button_sep;
 _y2 = _y + _button_h;
 //*/
@@ -403,7 +410,7 @@ _y2 = _y + _button_h;
 
 manu_group_other = Func_UI_create_group(true,0,group_speed,false,true);
 var _y = room_height - 20;
-Func_UI_add_element(manu_group_other,_button_x,_y,_button_x + _button_w,_y,"Feedback Would be appreciated.",Func_button_create_func,-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,manu_group_other,_button_x,_y,_button_x + _button_w,_y,"Feedback Would be appreciated.",Func_button_create_func,-1,Func_button_draw_main);
 
 #endregion
 #endregion
