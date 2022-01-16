@@ -8,17 +8,10 @@ UI_system();
 
 #endregion
 
-//general menu stuff
-group_speed = global.Game_speed * 0.3;
 
-//display variation
-menu_vari_dist_min = 0.5;
-menu_vari_dist_max = 3;
-menu_vari_dist = 0;
-menu_vari_precision_dist = 40;
-menu_shudder_max = 0.7; //shudder displayed if mouse hovers over menu ellement
+
+
 //mouse menu system
-
 menu_selected = -1;
 menu_action = false; //if clicked/interacted
 
@@ -63,18 +56,20 @@ function Func_menu_update_mouse_select()
 	}
 func_menu_find_mouse_select = function()
 	{
+	var i,ii,_list,_size,_struct_index;
+	
 	var _ag_height = ds_grid_height(UI_group_grid);
-	for(var i=0;i<_ag_height;i++)//go through all groups
+	for(i=0;i<_ag_height;i++)//go through all groups
 		{
 		//check if active
 		if UI_group_grid[# UI_GROUP_INDEX.enabled, i]
 			{
 			//go through all elements
-			var _list = UI_group_grid[# UI_GROUP_INDEX.element_list, i];
-			var _size = ds_list_size(_list);
-			for(var ii=0;ii<_size;ii++)//go through all elements in group
+			_list = UI_group_grid[# UI_GROUP_INDEX.element_list, i];
+			_size = ds_list_size(_list);
+			for(ii=0;ii<_size;ii++)//go through all elements in group
 				{
-				var _struct_index = _list[| ii];
+				_struct_index = _list[| ii];
 				
 				if func_menu_check_element_mouse_select(_struct_index)
 					return _struct_index;

@@ -53,34 +53,39 @@ func_pausemenu_return = function()
 	}
 func_pausemenu_int_return = function(_x1,_y1,_x2,_y2,_index)
 	{
-	if (menu_action and menu_selected==_index) or keyboard_check_pressed(vk_space)
-		{
-		func_pausemenu_return();
-		func_pausemenu_close();
-		}
+	if (func_UIES_check_selaction()) or keyboard_check_pressed(vk_space)
+		with(menu)
+			{
+			func_pausemenu_return();
+			func_pausemenu_close();
+			}
 	}
 func_pausemenu_int_to_main = function(_x1,_y1,_x2,_y2,_index)
 	{
-	if (menu_action and menu_selected==_index) or keyboard_check_pressed(vk_escape)
+	if (func_UIES_check_selaction()) or keyboard_check_pressed(vk_escape)
 		{
 		with(obj_game)
 			{
 			func_game_end();
 			}
-		func_pausemenu_close();
+		with(menu)
+			{
+			func_pausemenu_close();
+			}
+		
 		}
 	}
 
 
 var _x = _disp_x;
 var _y = _disp_y;
-Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Game Paused",-1,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Game Paused",Func_button_create_func,-1,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
-Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Return",func_pausemenu_int_return,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Return",Func_button_create_func,func_pausemenu_int_return,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
-Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Exit to menu",func_pausemenu_int_to_main,Func_button_draw_main);
+Func_UI_add_element(Constructor_UIP_element,pamen_group,_x,_y,_x+_disp_w,_y+_disp_h,"Exit to menu",Func_button_create_func,func_pausemenu_int_to_main,Func_button_draw_main);
 _y += _disp_h + _disp_y_sep;
 
 

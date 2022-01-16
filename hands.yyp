@@ -9,6 +9,7 @@
     {"id":{"name":"ac_frame_hands","path":"animcurves/ac_frame_hands/ac_frame_hands.yy",},"order":3,},
     {"id":{"name":"ac_game_rule_timer","path":"animcurves/ac_game_rule_timer/ac_game_rule_timer.yy",},"order":7,},
     {"id":{"name":"fn_menu","path":"fonts/fn_menu/fn_menu.yy",},"order":2,},
+    {"id":{"name":"obj_tansition","path":"objects/obj_tansition/obj_tansition.yy",},"order":7,},
     {"id":{"name":"parent_menu","path":"objects/parent_menu/parent_menu.yy",},"order":2,},
     {"id":{"name":"obj_menu","path":"objects/obj_menu/obj_menu.yy",},"order":0,},
     {"id":{"name":"UI_stuff","path":"scripts/UI_stuff/UI_stuff.yy",},"order":3,},

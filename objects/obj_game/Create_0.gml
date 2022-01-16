@@ -22,7 +22,6 @@ global.Rule_Hand_self		// RULE_HAND_SELF
 
 randomize();
 
-
 #region General
 global.Width = 300;
 global.Height = 200;
@@ -1838,3 +1837,6 @@ function Func_Debug_Enable(_bool)
 //do
 func_menu_create();
 func_window_name();
+
+
+//instance_create_layer(0,0,"Menus",obj_tansition);
