@@ -6,10 +6,6 @@
 new rule: timer against //timer diesnt get reset but reversed, and if it runs out on your side you get -score
 
 
-
-
-
-
 global.Game_Wins_needed		// val
 global.Game_Wins_against	// bool
 global.Rule_Score_type		// SCORE_TYPE
@@ -593,8 +589,9 @@ game_on_time = global.Game_speed * 1;
 game_on_count = 0;
 
 //hand
-global.Circle_hand_offset = 20; //offset for game hands
 global.LongestDistance = point_distance(0,0,global.Game_point_x,global.Game_point_y); //longest distance between game point and screen edge
+//global.Circle_hand_offset = basecircle_rad_base; //offset for game hands //in base circle
+
 
 func_hand_create = function(_type,_x,_y)
 	{
@@ -1830,7 +1827,20 @@ function Func_Debug_Enable(_bool)
 
 
 #endregion
+#region Base Circle
 
+basecircle_rad_base = 20;
+basecircle_rad = 0;
+basecircle_max = 2;
+basecircle_speedmult = 200; //speed multiplier | higher num == lower speed
+
+
+
+//hands
+global.Circle_hand_offset = basecircle_rad_base; //offset for game hands
+
+
+#endregion
 
 
 

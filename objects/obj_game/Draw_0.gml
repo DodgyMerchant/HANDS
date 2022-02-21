@@ -14,7 +14,7 @@ draw_set_alpha(1);
 
 #endregion
 
-if game_on_t > 0
+if game_on_t > 0 //game is active not playing
 {
 #region dim surface
 
@@ -134,16 +134,28 @@ if global.Rule_Timer
 	}
 
 #endregion
-#region base circle
-var _r = (20 + 2 * cos(current_time/200)) * clamp(game_on_t/0.2,0,1);
-//var _r = (20 + 2 * cos(current_time/200));
+#region base circle INACTIVE
+/*
+var _size_scale_offset = 0.2;
+var _r = (20 + 2 * cos(current_time/200)) * clamp(game_on_t/_size_scale_offset,0,1);
 draw_set_color(c_black);
 draw_circle(global.Game_point_x,global.Game_point_y, _r + 1,false);
 draw_set_color(c_white);
 draw_circle(global.Game_point_x,global.Game_point_y, _r,false);
+//*/
 #endregion
 
 }
 
+#region base circle INACTIVE
+//*
+//var _size_scale_offset = 0.2;
+//* clamp(game_on_t/_size_scale_offset,0,1);
+draw_set_color(c_black);
+draw_circle(global.Game_point_x,global.Game_point_y, basecircle_rad + 1,false);
+draw_set_color(c_white);
+draw_circle(global.Game_point_x,global.Game_point_y, basecircle_rad,false);
+//*/
+#endregion
 
 //Func_draw_hand_arm(HAND_TYPE.open,global.Game_point_x,global.Game_point_y,mouse_x,mouse_y,90,1,false);

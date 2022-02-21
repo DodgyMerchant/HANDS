@@ -308,7 +308,13 @@ pause_dim_a = lerp(0, pause_dim_a_max, (countdown_time_count / countdown_time) *
 
 
 #endregion
+#region base circle
 
+
+basecircle_rad = basecircle_rad_base + (basecircle_max * cos(current_time / basecircle_speedmult));
+
+
+#endregion
 
 #region debug
 

@@ -1,7 +1,9 @@
-/// @desc 
+/// @desc My personal evolution of my ui system. CHanges are projekt specific and wont be applied to general system.
+
 
 // Inherit the parent event
 event_inherited();
+
 
 #region variables
 

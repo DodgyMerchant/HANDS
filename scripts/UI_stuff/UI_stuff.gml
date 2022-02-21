@@ -33,7 +33,7 @@ function Func_button_draw_main()
 	
 	//draw
 	Func_draw_hand_stretch(_type, offscreen_x, offscreen_y, _x, _y, 1, true);
-	draw_text_transformed(midbegin_x, midbegin_y ,text, 1, 1, rot);
+	draw_text_transformed(midbegin_x, midbegin_y , text, 1, 1, rot);
 	}
 function Func_button_draw_mainOLD()
 	{
@@ -125,4 +125,20 @@ function Func_menu_group_switch(_g1,_g2)
 	{
 	Func_UI_group_enable(_g1, !UI_group_grid[# UI_GROUP_INDEX.enabled, _g1]);
 	Func_UI_group_enable(_g2, !UI_group_grid[# UI_GROUP_INDEX.enabled, _g2]);
+	}
+
+function Func_menu_create_button_halo(_constructor,_group,_r,_w,_h,_distance,_text,_create_func,_step_func,_draw_func)//cerates button in a halo manner
+	{
+	/*
+	_r = degree relative zur mitte. 0=rechts.
+	
+	*/
+	
+	var _r2 = _r;
+	_r = _r + 180;//reverse | 0
+	
+	var _x = lengthdir_x((_w*.5) + _distance,_r2) + global.Game_point_x;
+	var _y = lengthdir_y((_w*.5) + _distance,_r2) + global.Game_point_y;
+	
+	return Func_UI_add_element_ext(_constructor,_group,_x,_y,_w,_h,_r,_text,_create_func,_step_func,_draw_func)
 	}
