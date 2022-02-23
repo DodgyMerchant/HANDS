@@ -2,11 +2,11 @@
   "isDnD": false,
   "isCompatibility": false,
   "parent": {
-    "name": "Menu&UI",
-    "path": "folders/Systems/Menu&UI.yy",
+    "name": "ToPublish",
+    "path": "folders/Systems/Menu&UI/ToPublish.yy",
   },
   "resourceVersion": "1.0",
-  "name": "UI_system",
+  "name": "InfiniUI_system",
   "tags": [],
   "resourceType": "GMScript",
 }

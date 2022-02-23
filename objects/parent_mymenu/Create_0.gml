@@ -21,10 +21,9 @@ menu_shudder_max = 0.7; //shudder displayed if mouse hovers over menu ellement
 
 
 #endregion
-#region customize UI contructor
+#region customize UI contructors
 
-
-function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) : Constructor_UI_element(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+function Constructor_UIP_element				(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UI_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	#region all vars
 	
@@ -32,6 +31,7 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 	text_leng = string_width(text);
 	static hand_w = sprite_get_width(spr_hand);
 	static hand_h = sprite_get_width(spr_hand);
+	static hand_longest = point_distance(0,0,hand_w,hand_h);
 	
 	#region position help
 	#region info
@@ -81,7 +81,6 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 		func_UIESP_pos_varset_off();
 		}
 	
-	
 	//calculating helpers
 	static func_UIESP_pos_varset_basecoords = function()
 		{
@@ -120,17 +119,100 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 		distance should be enought so that the hand draw doesnt mess up when going offscreen
 		
 		
-		STATE:
-		ATM this just uses an arbitrary distance assuming that the beginning of the menu element is at the edge of the screen
 		
-		FUTURE:
-		it should detect the screen edge in the reverse direction its facing and from that point apply a safe distance
 		*/
-		static _dist = hand_h+5;
 		
-		offscreen_x = midbegin_x + lengthdir_x(_dist, rot+180);
-		offscreen_y = midbegin_y + lengthdir_y(_dist, rot+180);
+		var _r = rot+180;
 		
+		#region //good idea dont know how to do it
+		/* 
+		var _rrad = degtorad(_r);
+		
+		if _r mod 90 == 0 //rad is either hor or vertical | only one side can be possible
+			{
+			offscreen_x = midbegin_x;
+			offscreen_y = midbegin_y;
+			
+			switch(_r)
+				{
+				case 0:
+					offscreen_x = global.Width;
+				break;
+				case 90:
+					offscreen_y = 0;
+				break;
+				case 180:
+					offscreen_x = 0;
+				break;
+				case 270:
+					offscreen_y = global.Height;
+				break;
+				}
+			}
+		else
+			{
+			offscreen_x = midbegin_x;
+			offscreen_y = midbegin_y;
+			
+			//get rotational non relative nearest corner
+			var _rcorner_x = round(Func_t_reverse_span(cos(_rrad))) * global.Width;
+			var _rcorner_y = round(Func_t_reverse_span(-sin(_rrad))) * global.Height;
+			
+			if point_direction(midbegin_x,midbegin_y,_rcorner_x,_rcorner_y) > _r //angle to corner is higher than _r | _r lower
+				{
+				
+				}
+			else
+				{
+				
+				}
+			
+			
+			switch(corner)
+				{
+				case 0:
+					offscreen_x = global.Width;
+					offscreen_y = 0;
+				break;
+				case 1:
+					offscreen_x = 0;
+					offscreen_y = 0;
+				break;
+				case 2:
+					offscreen_x = 0;
+					offscreen_y = global.Height;
+				break;
+				case 3:
+					offscreen_x = global.Width;
+					offscreen_y = global.Height;
+				break;
+				}
+			}
+		//*/
+		#endregion
+		
+		#region placeholder omega bad shit
+		
+		var _step = 10;
+		var _x = midend_x;
+		var _y = midend_y;
+		
+		do{
+			_x += lengthdir_x(_step,_r);
+			_y += lengthdir_y(_step,_r);
+			}
+		until(!point_in_rectangle(_x,_y,0,0,global.Width,global.Height))
+		
+		//set and add distance
+		offscreen_x = _x + lengthdir_x(hand_longest, _r);
+		offscreen_y = _y + lengthdir_y(hand_longest, _r);
+		
+		#endregion
+		
+		/* //old stuff
+		offscreen_x = midbegin_x + lengthdir_x(hand_longest, _r);
+		offscreen_y = midbegin_y + lengthdir_y(hand_longest, _r);
+		//*/
 		}
 	
 	//manipulating
@@ -183,15 +265,6 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 		_pivot_y = the y coordinate the element will be rotated around
 		*/
 		
-		x1 = point_list[| 0];//left top
-		y1 = point_list[| 1];
-		x2 = point_list[| 2];//right top
-		y2 = point_list[| 3];
-		x3 = point_list[| 4];//right bottom
-		y3 = point_list[| 5];
-		x4 = point_list[| 6];//left bottom
-		y4 = point_list[| 7];
-		
 		var _x,_y,_dist,_dir;
 		var _size = ds_list_size(point_list);
 		for(var i=0;i<_size;i+=2)
@@ -201,8 +274,8 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 			_dist = point_distance(_pivot_x,_pivot_y,_x,_y);
 			_dir = point_direction(_pivot_x,_pivot_y,_x,_y) + _rot;
 			
-			point_list[| i]		= lengthdir_x(_dist,_dir);
-			point_list[| i+1]	= lengthdir_y(_dist,_dir);
+			point_list[| i]		= _pivot_x + lengthdir_x(_dist,_dir);
+			point_list[| i+1]	= _pivot_y + lengthdir_y(_dist,_dir);
 			}
 		}
 	
@@ -218,16 +291,51 @@ function Constructor_UIP_element(_menu,_group,_text,_create_func,_step_func,_dra
 		
 		func_UIESP_pos_change_all(x1,y1,x2,y2,x3,y3,x4,y4);
 		}
+	static func_UIESP_pos_set_begindistance = function(_dist)//recalculates and sets the begin points given _distance away from the end points
+		{
+		func_UIESP_pos_varset_rot();
+		//calc new end position
+		x1 = x2 - lengthdir_x(_dist, rot);//top
+		y1 = y2 - lengthdir_y(_dist, rot);
+		x4 = x3 - lengthdir_x(_dist, rot);//bottom
+		y4 = y3 - lengthdir_y(_dist, rot);
+		
+		func_UIESP_pos_change_all(x1,y1,x2,y2,x3,y3,x4,y4);
+		}
+	static func_UIESP_set_text = function(_str, calc_dist)//recalculates and sets the begin points given _distance away from the end points
+		{
+		/*
+		calc_dist = 0,1,2 | 0=false no calc | 1 = set end points | 2 = set begin points
+		
+		*/
+		text = _str;
+		text_leng = string_width(text);
+		
+		//sets no, end or begin points
+		switch(calc_dist)
+			{
+			case 1: func_UIESP_pos_set_enddistance(text_leng); break;
+			case 2:func_UIESP_pos_set_begindistance(text_leng); break;
+			}
+		}
+	
 	
 	//using
 	func_UIESP_pos_update_all();
-	#endregion
+	
 	
 	#endregion
-	
-	func_UIESP_pos_set_enddistance(text_leng);
+	#endregion
 	}
-
-
+function Constructor_UIP_element_orient_end	(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+	{
+	func_UIESP_pos_set_begindistance(max(text_leng,3));//if text is "" setting the width to 0 effectivly deletes the rotation of the element as the begin, end and mid will be ontop of each other.
+	//func_UIESP_pos_set_begindistance(text_leng);
+	}
+function Constructor_UIP_element_orient_begin	(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+	{
+	func_UIESP_pos_set_enddistance(max(text_leng,3));//if text is "" setting the width to 0 effectivly deletes the rotation of the element as the begin, end and mid will be ontop of each other.
+	//func_UIESP_pos_set_enddistance(text_leng);
+	}
 
 #endregion

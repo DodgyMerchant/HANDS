@@ -56,10 +56,10 @@ _y = func_debug_txt(0,_y,
 //*/
 );
 
-if instance_exists(parent_menu)
+if instance_exists(InfiniUI_parent)
 _y = func_debug_txt(0,_y,
 "///////MENU///////",
-"menu_selected: "+string(parent_menu.menu_selected),
+"menu_selected: "+string(InfiniUI_parent.menu_selected),
 "global.Menu_control_type: "+string(global.Menu_control_type),
 );
 

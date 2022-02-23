@@ -4,11 +4,6 @@
 
 function Func_button_create_func()
 	{
-	//create points
-	
-	
-	
-	
 	
 	}
 
@@ -21,113 +16,75 @@ function Func_button_draw_main()
 	
 	#region hand type
 	var _type;
-	if step_func == -1
+	if !func_UIES_get_selectable()
 		_type = HAND_TYPE.point;
 	else
 		_type = (_selected ? HAND_TYPE.open : HAND_TYPE.fist);
+	#endregion
+	
+	#region variation
+	//*/
+	
+	//variation = wiggle/sway
+	var _vari_mult; //from 1==full variation to 0==no variation
+	if _selected//if im selected
+		_vari_mult = 0;//no wiggle
+	else if global.Menu_control_type == MENU_CONTROL_TYPE.mouse //if mouse used -> calc wiggle on distance
+		_vari_mult = clamp(point_distance(mid_x, mid_y, mouse_x,mouse_y) / menu.menu_vari_precision_dist, 0, 1);
+	else//keyboard used -> full wiggle
+		_vari_mult = 1;//full wiggle
+	
+	//individual variation offset
+	var _ind_x = midend_x/global.Height;
+	var _ind_y = midend_y/global.Height;
+	
+	//wiggle
+	var _vari_x = menu.menu_vari_dist * Func_t_span(animcurve_channel_evaluate(global.gendisp_vari_channel1, (global.gendisp_vari_t1 * _tension + _ind_x) mod 1)) * _vari_mult;
+	var _vari_y = menu.menu_vari_dist * Func_t_span(animcurve_channel_evaluate(global.gendisp_vari_channel2, (global.gendisp_vari_t2 * _tension + _ind_y) mod 1)) * _vari_mult;
+	
+	#region //shudder | element shivers when mouse near or selected
+	var _shudder_x,_shudder_y;
+	if func_UIES_get_selectable()//if element is selectable
+		{
+		var _shudder = menu.menu_shudder_max * Func_t_invert(_vari_mult);
+		_shudder_x = random_range(-_shudder,_shudder);
+		_shudder_y = random_range(-_shudder,_shudder);
+		}
+	else
+		{
+		_shudder_x = 0;
+		_shudder_y = 0;
+		}
+	#endregion
+	//*/
 	#endregion
 	
 	//xy
-	var _x = lerp(offscreen_x,	midend_x, _trans);
-	var _y = lerp(offscreen_y,	midend_y, _trans);
+	var _x = lerp(offscreen_x,	midend_x, _trans) + _vari_x;
+	var _y = lerp(offscreen_y,	midend_y, _trans) + _vari_y;
 	
 	//draw
-	Func_draw_hand_stretch(_type, offscreen_x, offscreen_y, _x, _y, 1, true);
-	draw_text_transformed(midbegin_x, midbegin_y , text, 1, 1, rot);
-	}
-function Func_button_draw_mainOLD()
-	{
-	
-	x2 = max(x1 + string_width(_str),x2 - hand_w); //end position = self or fit to string length
-	
-	var _selected = func_UIES_check_selected();
-	
-	#region type
-	var _type;
-	if step_func == -1
-		_type = HAND_TYPE.point;
+	Func_draw_hand_stretch(_type, offscreen_x, offscreen_y, _x + _shudder_x, _y + _shudder_y, 1, true);
+	#region text
+	//!!!!!!!!!!YES the text is off 1 pixel if rotated !!!!!!!!!!!!!!  I hope they fix it
+	//rotates and formats text
+	var _r = (rot + 90) mod 360;
+	if _r div 180 == 0 //not flipped
+		draw_set_halign(fa_right);
 	else
-		_type = (_selected ? HAND_TYPE.open : HAND_TYPE.fist);
+		draw_set_halign(fa_left);
+	
+	draw_text_transformed(_x, _y, text, 1, 1, _r mod 180 - 90);
 	#endregion
-	#region display vari
-	
-	//*
-	//precision anti wiggle
-	//base calc on menu control type
-	var _precision; //from 1==no precision to 0==full precision
-	if _selected//if im selected
-		_precision = 0;//no wiggle
-	else if global.Menu_control_type == MENU_CONTROL_TYPE.mouse //if mouse used -> calc wiggle on distance
-		_precision = clamp(point_distance(_x1+(_x2-_x1)/2,_y1+(_y2-_y1)/2,mouse_x,mouse_y) / menu_vari_precision_dist, 0, 1);
-	else//keyboard used -> full wiggle
-		_precision = 1;//full wiggle
-	
-	//own y position _t
-	var _yt = _y1/global.Height;
-	//score multiplier
-	var _tension = 1+global.Game_Score_t;
-	
-	//wiggle
-	var _vari_x = menu_vari_dist * Func_t_span(animcurve_channel_evaluate(global.gendisp_vari_channel1, (global.gendisp_vari_t1 * _tension + _yt) mod 1)) * _precision;
-	var _vari_y = menu_vari_dist * Func_t_span(animcurve_channel_evaluate(global.gendisp_vari_channel2, (global.gendisp_vari_t2 * _tension + _yt) mod 1)) * _precision;
-	
-	_x1+=_vari_x;
-	_y1+=_vari_y;
-	_x2+=_vari_x;
-	_y2+=_vari_y;
-	//*/
-	#endregion
-	
-	UI_element_grid[# UI_ELEMENT_INDEX.x2, i] = _x2;//update for better click
-	
-	var _text_x = _x2 - _x1;//update text position
-	var _ymid = _y1 + (_y2 - _y1) *.5;//calc h mid
-	var moving_x2 = lerp(-hand_w,_x2,_gt);//scale end position wht active
-	
-	#region display hand
-	/*
-	if _precision == 1
-		Func_draw_hand_stretch(_type,-hand_w-10,_ymid,moving_x2,_ymid,1,false);
-	else
-		{//same display only shudder is calced and applied
-		var _shudder = menu_shudder_max * Func_t_invert(_precision);
-		var _shdrx = random_range(-_shudder,_shudder);
-		var _shdry = random_range(-_shudder,_shudder);
-		Func_draw_hand_stretch(_type,
-		-hand_w-10	+ _shdrx,
-		_ymid		+ _shdry,
-		moving_x2	+ _shdrx,
-		_ymid		+ _shdry,
-		1,false);
-		}
-	//*/
-	#endregion
-	
-	//display text
-	//draw_set_color(c_black);
-	//draw_text(moving_x2 - _text_x, _ymid,_str);
-	
-	draw_set_color(c_white);
-	draw_text_transformed(mid_x, mid_y ,text, 1, 1, rot);
-	
-	draw_line(x1,y1,x2,y2);
-	draw_line(x2,y2,x3,y3);
-	draw_line(x3,y3,x4,y4);
-	draw_line(x4,y4,x1,y1);
-	draw_circle(x1, y1, 5,true);
-	draw_circle(x2, y2, 5,true);
-	draw_circle(x3, y3, 5,true);
-	draw_circle(x4, y4, 5,true);
-	draw_line(mid_x, mid_y, offscreen_x, offscreen_y);
 	}
 
 function Func_menu_group_switch(_g1,_g2)
 	{
-	Func_UI_group_enable(_g1, !UI_group_grid[# UI_GROUP_INDEX.enabled, _g1]);
-	Func_UI_group_enable(_g2, !UI_group_grid[# UI_GROUP_INDEX.enabled, _g2]);
+	Func_UI_group_switch(_g1);
+	Func_UI_group_switch(_g2);
 	}
 
-function Func_menu_create_button_halo(_constructor,_group,_r,_w,_h,_distance,_text,_create_func,_step_func,_draw_func)//cerates button in a halo manner
+function Func_menu_create_button_halo(_constructor,_group,_r,_w,_h,_distance,_text,_create_func=-1,_step_func=-1,_draw_func=-1)//cerates button in a halo manner
 	{
 	/*
 	_r = degree relative zur mitte. 0=rechts.

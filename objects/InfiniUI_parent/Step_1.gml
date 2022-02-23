@@ -11,7 +11,6 @@ menu_selected = Func_menu_update_select();
 if menu_selected != -1
 	{
 	menu_action = Func_menu_update_action();
-	
 	}
 else
 	{
