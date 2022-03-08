@@ -1,4 +1,4 @@
 
 
 
-Func_UI_cleanup();
+Func_UI_deinitialize();

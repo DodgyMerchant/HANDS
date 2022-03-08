@@ -21,9 +21,9 @@ menu_shudder_max = 0.7; //shudder displayed if mouse hovers over menu ellement
 
 
 #endregion
-#region customize UI contructors
+#region customize UI constructors
 
-function Constructor_UIP_element				(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UI_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+function Constructor_UIP_element				(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UI_element	(_menu,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	#region all vars
 	
@@ -327,15 +327,45 @@ function Constructor_UIP_element				(_menu,_group,_text,_create_func=-1,_step_fu
 	#endregion
 	#endregion
 	}
-function Constructor_UIP_element_orient_end	(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+function Constructor_UIP_element_orient_end	(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	func_UIESP_pos_set_begindistance(max(text_leng,3));//if text is "" setting the width to 0 effectivly deletes the rotation of the element as the begin, end and mid will be ontop of each other.
 	//func_UIESP_pos_set_begindistance(text_leng);
 	}
-function Constructor_UIP_element_orient_begin	(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_create_func,_step_func,_draw_func,_point_list) constructor
+function Constructor_UIP_element_orient_begin	(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	func_UIESP_pos_set_enddistance(max(text_leng,3));//if text is "" setting the width to 0 effectivly deletes the rotation of the element as the begin, end and mid will be ontop of each other.
 	//func_UIESP_pos_set_enddistance(text_leng);
 	}
+
+
+function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) : Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
+	{
+	/*
+	supply an orientation variable
+	
+	*/
+	
+	orient_x = _orient_x;
+	orient_y = _orient_y;
+	orient_r = _orient_r;
+	
+	static func_UIGSPO_orientate = function(_element_index)//changes and updates all position and helper variables
+		{
+		
+		var _r = angle_difference(orient_r,_element_index.rot);
+		
+		var _size = ds_list_size(element_list)
+		for(var i=0; i<_size;i++)
+			{
+			with(element_list[| i])
+				{
+				func_UIESP_rotate_coorddata(_r,other.orient_x,other.orient_y);
+				func_UIESP_pos_update_all();
+				}
+			}
+		}
+	}
+
 
 #endregion

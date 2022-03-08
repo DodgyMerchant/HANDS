@@ -1112,6 +1112,7 @@ gp_shoulderrb,	INPUT_TYPE.special,	-1
 )
 #endregion
 
+
 func_input_check = function()
 	{
 	//clear list

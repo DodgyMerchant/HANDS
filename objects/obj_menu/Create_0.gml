@@ -14,16 +14,6 @@ func_menu_game_end = function()
 
 #region UI
 
-
-manu_group_main = 0;
-manu_group_options = 0;
-manu_group_optWin = 0;
-manu_group_optScoHeal = 0;
-manu_group_optTime = 0;
-manu_group_optRules = 0;
-
-manu_group_other = 0;
-
 /*
 updated UI system!!
 
@@ -48,7 +38,7 @@ func_button_int_start = function()
 		Func_UI_group_enable(manu_group_main,false);
 		Func_UI_group_enable(manu_group_other,false);
 			
-		alarm[0] = UI_group_grid[# UI_GROUP_INDEX.time,manu_group_main];
+		alarm[0] = manu_group_main.time;
 		}
 	}
 func_button_int_end = function()
@@ -74,7 +64,6 @@ func_button_int_switch_options = function()
 	menu_element_opt_swMain
 	*/
 	var _back = keyboard_check_pressed(vk_escape);
-	var _index = index;
 	
 	if func_UIES_check_selaction() or _back
 	with(menu)
@@ -315,55 +304,32 @@ func_button_int_options = function()
 #endregion
 #region creating element and groups
 
-var _func_create_menu_element = function(_reset=false, _rot_start = undefined, _sep = undefined, _dist = undefined, _constructor,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1)
-	{
-	static _element_rot = _rot_start;
-	static _element_sep = _sep;
-	static _element_dist = obj_game.basecircle_rad_base + sprite_get_width(spr_hand) + _dist;
-	
-	if _reset
-		{
-		if _rot_start	!= undefined	{_element_rot =		_rot_start;																				}
-		if _sep		!= undefined	{_element_sep =		_sep;																					}
-		if _dist		!= undefined	{_element_dist =	obj_game.basecircle_rad_base + sprite_get_width(spr_hand) + _dist;						}
-		}
-	
-	static _element_w = 50;
-	static _element_h = sprite_get_height(spr_hand_stretch);
-	
-	
-	
-	//create new element
-	var _element = Func_menu_create_button_halo(_constructor,_group,_element_rot,_element_w,_element_h,_element_dist,_text,_create_func,_step_func,_draw_func);//
-	
-	//progress
-	if _element_sep != 0		//measures direction to front bottom edge from game_point x2 as minimum element sep
-		_element_rot += max(-angle_difference(_element_rot ,point_direction(global.Game_point_x,global.Game_point_y,_element.x3,_element.y3))*2, abs(_element_sep)) * sign(_element_sep);
-	
-	return _element;
-	}
+//var Func_create_menu_element = function(_reset=false, _rot_start = undefined, _sep = undefined, _dist = undefined, _constructor,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1)
+//now in UI stuff
 
 
 #region main
 
-manu_group_main = Func_UI_create_group(true,0,group_speed,false,true);
-							_func_create_menu_element(true,175,20,10,	Constructor_UIP_element_orient_end,manu_group_main,"Start"		,,func_button_int_start,			Func_button_draw_main);
-							_func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Options"	,,func_button_int_switch_options,	Func_button_draw_main);
-							_func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Exit"		,,func_button_int_end,				Func_button_draw_main);
+//manu_group_main = Func_UI_create_group(,true,0,group_speed,false,true);
+manu_group_main = Func_UIP_create_group_orient(true,0,group_speed,false,true,global.Game_point_x,global.Game_point_y,180);
+							Func_create_menu_element(true,175,20,10,	Constructor_UIP_element_orient_end,manu_group_main,"Start"		,true,,func_button_int_start,			Func_button_draw_main);
+							Func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Options"	,true,,func_button_int_switch_options,	Func_button_draw_main);
+							Func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Exit"		,true,,func_button_int_end,				Func_button_draw_main);
+							//Func_UI_add_element(Constructor_UIP_element_orient_end,manu_group_main, 20,20,100,100, "TEST",true,,func_button_int_end, Func_button_draw_main);
 #endregion
 #region options
 
 #region general
 
-manu_group_options = Func_UI_create_group(false,0,group_speed,false,true);
+manu_group_options = Func_UI_create_group(,false,0,group_speed,false,true);
 
-							_func_create_menu_element(true,150,15,0,	Constructor_UIP_element_orient_end,manu_group_options,"-OPTIONS-"		,,-1,									Func_button_draw_main);
-							_func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_options,"Back"			,,func_button_int_switch_options,		Func_button_draw_main);
-menu_element_opt_swWin		= _func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Winning"			,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_opt_swScoHeal	= _func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Score and Health",,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_opt_swTime		= _func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Timer"			,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_opt_swRules	= _func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Hand Rules"		,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_opt_reset		= _func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Reset"			,,func_button_int_options,				Func_button_draw_main);
+							Func_create_menu_element(true,150,15,0,	Constructor_UIP_element_orient_end,manu_group_options,"-OPTIONS-"		,,,,										Func_button_draw_main);
+							Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Back"			,true,,func_button_int_switch_options,		Func_button_draw_main);
+menu_element_opt_swWin		= Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Winning"			,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_opt_swScoHeal	= Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Score and Health",true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_opt_swTime		= Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Timer"			,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_opt_swRules	= Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Hand Rules"		,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_opt_reset		= Func_create_menu_element(,,,,			Constructor_UIP_element_orient_end,manu_group_options,"Reset"			,true,,func_button_int_options,				Func_button_draw_main);
 
 
 #endregion
@@ -374,42 +340,42 @@ var _subdist = -20;
 #region wins
 //*
 
-manu_group_optWin = Func_UI_create_group(false,0,group_speed,false,true);
-								_func_create_menu_element(true,20,-20,-10,				Constructor_UIP_element_orient_end,manu_group_optWin,"-Winning-"	,,,										Func_button_draw_main);
-//menu_element_optWin_swOpt		= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,"Back"				,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_optWin_needed		= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,""					,,func_button_int_options,				Func_button_draw_main);
-menu_element_optWin_against		= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,""					,,func_button_int_options,				Func_button_draw_main);
+manu_group_optWin = Func_UI_create_group(,false,0,group_speed,false,true);
+								Func_create_menu_element(true,20,-20,-10,			Constructor_UIP_element_orient_end,manu_group_optWin,"-Winning-"		,,,,										Func_button_draw_main);
+//menu_element_optWin_swOpt		= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,"Back"				,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_optWin_needed		= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,""					,true,,func_button_int_options,				Func_button_draw_main);
+menu_element_optWin_against		= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optWin,""					,true,,func_button_int_options,				Func_button_draw_main);
 //*/
 
 #endregion
 #region score / health
 //*
 
-manu_group_optScoHeal = Func_UI_create_group(false,0,group_speed,false,true);
+manu_group_optScoHeal = Func_UI_create_group(,false,0,group_speed,false,true);
 
-								_func_create_menu_element(true,_subrot,-5,_subdist,		Constructor_UIP_element_orient_end,manu_group_optScoHeal,"-Score and Health-"		,,,										Func_button_draw_main);
-//menu_element_optScoHe_swOpt	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,"Back"						,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_optScoHe_scoType	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,,func_button_int_options,				Func_button_draw_main);
-menu_element_optScoHe_scoNeed	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,,func_button_int_options,				Func_button_draw_main);
-menu_element_optScoHe_helMax	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,,func_button_int_options,				Func_button_draw_main);
+								Func_create_menu_element(true,_subrot,-5,_subdist,	Constructor_UIP_element_orient_end,manu_group_optScoHeal,"-Score and Health-"		,,,,										Func_button_draw_main);
+//menu_element_optScoHe_swOpt	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,"Back"						,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_optScoHe_scoType	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,true,,func_button_int_options,				Func_button_draw_main);
+menu_element_optScoHe_scoNeed	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,true,,func_button_int_options,				Func_button_draw_main);
+menu_element_optScoHe_helMax	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optScoHeal,""							,true,,func_button_int_options,				Func_button_draw_main);
 
 //*/
 #endregion
 #region timer
 //*
 
-manu_group_optTime = Func_UI_create_group(false,0,group_speed,false,true);
-								_func_create_menu_element(true,_subrot,-20,_subdist,	Constructor_UIP_element_orient_end,manu_group_optTime,"-Timer-"			,,,										Func_button_draw_main);
-//menu_element_optTime_swOpt	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,"Back"				,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_optTime_timer		= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,""					,,func_button_int_options,				Func_button_draw_main);
-menu_element_optTime_timTime	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,""					,,func_button_int_options,				Func_button_draw_main);
+manu_group_optTime = Func_UI_create_group(,false,0,group_speed,false,true);
+								Func_create_menu_element(true,_subrot,-20,_subdist,	Constructor_UIP_element_orient_end,manu_group_optTime,"-Timer-"				,,,,										Func_button_draw_main);
+//menu_element_optTime_swOpt	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,"Back"				,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_optTime_timer		= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,""					,true,,func_button_int_options,				Func_button_draw_main);
+menu_element_optTime_timTime	= Func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optTime,""					,true,,func_button_int_options,				Func_button_draw_main);
 
 //*/
 #endregion
 #region rules
 //*
 var _handrot = 55;
-manu_group_optRules = Func_UI_create_group(false,0,group_speed,true,true);
+manu_group_optRules = Func_UI_create_group(,false,0,group_speed,true,true);
 
 #region info text
 var _inforot = _handrot - 45;
@@ -418,23 +384,23 @@ var _infodist = 0;
 //can play onto your own hand
 //if oyu play onto your own hand you loos points
 //global.Rule_Hand_self == RULE_HAND_SELF.anarchy
-manu_group_optRulesAnarchy =	Func_UI_create_group(false,0,group_speed,false,true);
-manu_group_optRulesSoft =		Func_UI_create_group(false,0,group_speed,false,true);
-manu_group_optRulesSpikey =		Func_UI_create_group(false,0,group_speed,false,true);
-_func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesAnarchy,	"can beat your own"							,,,Func_button_draw_main);
-_func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesAnarchy,	"hand for points"							,,,Func_button_draw_main);
+manu_group_optRulesAnarchy =	Func_UI_create_group(,false,0,group_speed,false,true);
+manu_group_optRulesSoft =		Func_UI_create_group(,false,0,group_speed,false,true);
+manu_group_optRulesSpikey =		Func_UI_create_group(,false,0,group_speed,false,true);
+Func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesAnarchy,	"can beat your own"							,,,,Func_button_draw_main);
+Func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesAnarchy,	"hand for points"							,,,,Func_button_draw_main);
 
-_func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesSoft,	"can play onto"								,,,Func_button_draw_main);
-_func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesSoft,	"your own hand"								,,,Func_button_draw_main);
+Func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesSoft,	"can play onto"								,,,,Func_button_draw_main);
+Func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesSoft,	"your own hand"								,,,,Func_button_draw_main);
 
-_func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesSpikey,	"play onto your own hand"					,,,Func_button_draw_main);
-_func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesSpikey,	"but lose points"							,,,Func_button_draw_main);
+Func_create_menu_element(true,_inforot,-20,_infodist,		Constructor_UIP_element_orient_end,	manu_group_optRulesSpikey,	"play onto your own hand"					,,,,Func_button_draw_main);
+Func_create_menu_element(,,,,								Constructor_UIP_element_orient_end,	manu_group_optRulesSpikey,	"but lose points"							,,,,Func_button_draw_main);
 
 #endregion
 
-								_func_create_menu_element(true,_handrot,-20,_subdist,	Constructor_UIP_element_orient_end,manu_group_optRules,"-Hand Rules-"			,,,										Func_button_draw_main);
-//menu_element_optRules_swOpt	= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optRules,"Back"				,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
-menu_element_optRules_Hand		= _func_create_menu_element(,,,,						Constructor_UIP_element_orient_end,manu_group_optRules,""					,,func_button_int_options,				Func_button_draw_main);
+								Func_create_menu_element(true,_handrot,-20,_subdist,	Constructor_UIP_element_orient_end,manu_group_optRules,"-Hand Rules-"		,,,,										Func_button_draw_main);
+//menu_element_optRules_swOpt	= Func_create_menu_element(,,,,							Constructor_UIP_element_orient_end,manu_group_optRules,"Back"				,true,,func_button_int_optionsub_group_sw,	Func_button_draw_main);
+menu_element_optRules_Hand		= Func_create_menu_element(,,,,							Constructor_UIP_element_orient_end,manu_group_optRules,""					,true,,func_button_int_options,				Func_button_draw_main);
 
 
 //*/
@@ -445,10 +411,13 @@ menu_element_optRules_Hand		= _func_create_menu_element(,,,,						Constructor_UI
 #endregion
 #region other
 
-//manu_group_other = Func_UI_create_group(true,0,group_speed,false,true);
-//var _y = room_height - 20;
-//var _x = 20;
-//Func_UI_add_element(Constructor_UIP_element_orient_begin,manu_group_other,_x,_y,_x + 50,_y,"Feedback Would be appreciated.",,,Func_button_draw_main);
+manu_group_other = Func_UI_create_group(,true,0,group_speed,false,true);
+
+/*
+var _y = room_height - 20;
+var _x = 20;
+Func_UI_add_element(Constructor_UIP_element_orient_begin,manu_group_other,_x,_y,_x + 50,_y,"Feedback Would be appreciated.",,,,Func_button_draw_main);
+//*/
 
 #endregion
 #endregion

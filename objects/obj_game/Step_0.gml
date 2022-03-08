@@ -359,24 +359,6 @@ if global.Debug
 			countdown_time_count = 0;
 			}
 		#endregion
-		#region
-		if keyboard_check_pressed(ord("C"))
-			{
-			
-			var i,ii,_size,_list,_struct;
-			var _height = ds_grid_height(UI_group_grid);
-			for (i=0;i<_height;i++)
-				{
-				_list = UI_group_grid[# UI_GROUP_INDEX.element_list, i];
-				_size = ds_list_size(_list);
-				for (ii=0;ii<_size;ii++)
-					{
-					_struct = _list[| i];
-					show_debug_message(string(_struct.index));
-					}
-				}
-			}
-		#endregion
 		}
 	else
 		{

@@ -7,6 +7,9 @@ if global.Debug
 {
 draw_set_font(fn_debug);
 draw_set_color(c_red);
+draw_set_alpha(1);
+draw_set_valign(fa_top);
+draw_set_halign(fa_left);
 
 var _y = 20;
 
@@ -20,6 +23,7 @@ switch(global.Rule_Hand_self)
 	}
 
 _y = func_debug_txt(0,_y,
+"DEBUG:",
 /*
 "RULES",
 "Wins against?: "+string(global.Game_Wins_against),
@@ -37,7 +41,7 @@ _y = func_debug_txt(0,_y,
 "return_t: "+string(global.Timer_return_t),
 "timer_disp_player: "+string(timer_disp_player),
 //*/
-//*
+/*
 "Display t",
 "Game_Score_t/sign:"+string(global.Game_Score_t)+"/"+string(global.Game_Score_t_sign),
 "Game_Wins_t/sign:"+string(global.Game_Wins_t)+"/"+string(global.Game_Wins_t_sign),
@@ -50,24 +54,41 @@ _y = func_debug_txt(0,_y,
 "spaz range : "+string(frame_hand_spazrange),
 
 
-
-
-
 //*/
 );
-
-if instance_exists(InfiniUI_parent)
+#region InfiniUI_parent
+if instance_exists(InfiniUI_parent){
 _y = func_debug_txt(0,_y,
 "///////MENU///////",
 "menu_selected: "+string(InfiniUI_parent.menu_selected),
 "global.Menu_control_type: "+string(global.Menu_control_type),
+
+
 );
 
 
+//go through all UI parents and display all their group data
 
-
-
-
+var _str;
+var _inst_num = instance_number(InfiniUI_parent);
+for(var _in=0; _in<_inst_num; _in++)
+	{
+	with( instance_find(InfiniUI_parent,_in) )
+		{
+		var _size = ds_list_size(UI_group_list);
+		for(var _g=0; _g<_size; _g++)
+			{
+			with(UI_group_list[| _g])
+				{
+				_str = "Enab.: " + string(enabled) + " |t: " + string(trans) + " |dis/s: " + string(dis_step) + " |d: " + string(dis_draw);
+				draw_text(0,_y,_str);
+				_y += string_height(_str);
+				}
+			}
+		}
+	}
+}
+#endregion
 }
 #endregion
 

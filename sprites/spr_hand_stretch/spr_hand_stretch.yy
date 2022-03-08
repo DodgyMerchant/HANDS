@@ -59,7 +59,7 @@
     "eventToFunction": {},
     "eventStubScript": null,
     "parent": {"name":"spr_hand_stretch","path":"sprites/spr_hand_stretch/spr_hand_stretch.yy",},
-    "resourceVersion": "1.3",
+    "resourceVersion": "1.4",
     "name": "spr_hand_stretch",
     "tags": [],
     "resourceType": "GMSequence",

@@ -78,17 +78,14 @@ Technical: Event Functions-
 
 
 
-
-
-
-
-
 Variables that exist in initialized UI systems:
 
 UI_group_grid		= Grid that contains every UI Group
 
 
 
+
+////////////////////////// NAMING CONVENTION //////////////////////////
 Function name convention:
 
 UI		= User Interface							| global UI function, mostly to setup a UI system and supply it with elements
@@ -97,27 +94,68 @@ UIES	= User Interface Element Struct				| local function to UIE Structs
 
 *P		= Personal									| any function that isnt part of the base UI system | My personal addition for specific usecases
 
-///////////////////////////////////////////////////////////////////
+////////////////////////// UI ELEMENT COMPOSITION //////////////////////////
 
-concerning _create_func _draw_func _step_func:
-each function will be called in its respective event and known variables can be used.
-these variables are:
+known variables:
+	index		= my id		| id
+	menu		= instance id	| menu "parent" | object the menu is reated from
+	group		= group_id		| the group the UI element is part of
+	text		= string		| text given to the element. Can be displayed.
+	step_func	= function		| event funtion used in respective event call
+	draw_func	= function		| event funtion used in respective event call
+	create_func	= function		| event funtion used in respective event call
+	point_list	= ds_list		| list containing all points. set up in pairs. [| 0]=x1 [| 2]=y1
+	selectable	= bool			| if element is selectaable
 	
-point_list			: ds_list, index	| list of points given/calculated
-text				: string			| the string set on creation of the element
-step_func			: function			| function given
-draw_func			: function			| function given
+known functions:
+	static func_UIES_doEvent			//executes event script					| arg: enum UI_ELEMENT_EVENT_TYPE	| return none
+	static func_UIES_check_point		//checks if point is in element Polygon	| arg: 2 floar coords				| return bool
+	static func_UIES_get_group_t		//returns the groups transition value										| return float, multiplier 0-1 | 0=fully deactivated | 1=fully active, extended
+	static func_UIES_get_selectable		//returns if the element is selectable										| return bool
+	static func_UIES_check_selected		//checks for menu player mouse or other position on element					| return bool
+	static func_UIES_check_action		//checks for menu player interaction everywhere								| return bool
+	static func_UIES_check_selaction	//checks for menu player position and interaction							| return bool
 
-group				: val, index		| the index of the group in the UI_Grid the element is part of
-group_enabled		: bool				| in group is enabled
-group_t				: val, multiplier	| transition of the group bwtween enabled and disabled
+	
+//other
+toString()	//look into structs if this meeans nothing to you / change if needed
 
-returns index of the UI element struct
+
+////////////////////////// UI GROUP COMPOSITION //////////////////////////
+
+known variables:
+	index			= my id			| id
+	menu			= instance id	| menu "parent" | object the menu is reated from
+	enabled			= bool			| if the group is visible and active
+	progress		= val			| starting progress
+	time			= val			| the time it takes to deactivate the group
+	trans			= mult			| 0-1 of transition / startup time
+	dis_step		= bool			| if the group will still run its x event when:		disabled but time not 0
+	dis_draw		= bool			| if the group will still run its draw event when:	disabled but time not 0
+	element_list	= ds_list		| ds_list of all elements in the group
+
 ///////////////////////////////////////////////////////////////////
+
+
+
+
+--------------CUSTOMIZABILITY-----------------
+
+Element and Group constructor can be inherited
+I insist on not using any of the constructors, base or inherited, on their own. Use them throug the Func_UIE_create_struct & Func_UIG_create_struct functions
+
+The provided group_create or element_add provide multiple basic wasys to create elements and groups but are NOT nesessary.
+
+I recommend that you write your own create/add function for your Inherited constructor version of one of the base constructors.
+
+If you want to add additional agruments to the respective Func_UI[]_create_struct functions are built in a way that supports additional infinite arguments in some way.
+For more information please conslut the functions Information text.
+
+These function can be found in the Init section of this script.
 
 */
 #endregion
-#region init
+#region Init
 
 enum UI_ELEMENT_EVENT_TYPE
 	{
@@ -126,35 +164,24 @@ enum UI_ELEMENT_EVENT_TYPE
 	draw
 	}
 
-enum UI_GROUP_INDEX
+UI_group_list = ds_list_create();
+
+#region Element Constructir
+function Constructor_UI_element(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) constructor
 	{
-	enabled,
-	progress,
-	time,
-	trans,
-	dis_step,		//if the group will still run its step event when disabled but transitiontime not 0		//f.e. display while UI dropdown menu is closing
-	dis_draw,		//if the group will still run its draw event when disabled but transitiontime not 0
-	element_list,	//list of all elements contained in the group
-	enum_height//this enums height
-	}
-UI_group_grid = ds_grid_create(UI_GROUP_INDEX.enum_height, 1);
-
-//set empty
-Func_DHP_grid_set_empty(UI_group_grid);
-
-//constructor
-
-function Constructor_UI_element(_menu,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) constructor
-	{
+	/*
+	NOT FOR USE IN CODE ONLY IN RESPECTIVE FUNTION Func_UIE_create_struct
+	Functios referencing this constructor performs necessary setup that this constructor cant provide
+	*/
+	index = undefined; //my index | id
 	menu = _menu;	//menu "parent" | object the menu is reated from
 	group = _group;	//the group the UI element is part of
 	text = _text;	//text the element displayes
 	step_func =		(_step_func==-1 ?	-1 : method(undefined, _step_func));
 	draw_func =		(_draw_func==-1 ?	-1 : method(undefined, _draw_func));
 	create_func =	(_create_func==-1 ?	-1 : method(undefined, _create_func));
-	//creates and fills list 
 	point_list = _point_list;
-	index = 0; //my index
+	selectable = _selectable;//if element is selectaable
 	
 	//functions
 	static func_UIES_doEvent = function(_event_type)	//executes event script					| arg: enum UI_ELEMENT_EVENT_TYPE	| return none
@@ -174,11 +201,11 @@ function Constructor_UI_element(_menu,_group,_text,_create_func=-1,_step_func=-1
 		}
 	static func_UIES_get_group_t = function()			//returns the groups transition value										| return float, multiplier 0-1 | 0=fully deactivated | 1=fully active, extended
 		{
-		return menu.UI_group_grid[# UI_GROUP_INDEX.trans, group];
+		return group.trans;
 		}
 	static func_UIES_get_selectable = function()//TEMP//returns if the element is selectable										| return bool
 		{
-		return step_func != -1;
+		return selectable;
 		}
 	static func_UIES_check_selected = function()		//checks for menu player mouse or other position on element					| return bool
 		{
@@ -193,67 +220,229 @@ function Constructor_UI_element(_menu,_group,_text,_create_func=-1,_step_func=-1
 		return func_UIES_check_action() and func_UIES_check_selected();
 		}
 	
+	//other
+	static toString = function()
+		{
+		return "UIE: group: "+string(group)+"| text: "+string(text);
+		}
+	
 	//end
 	func_UIES_doEvent(UI_ELEMENT_EVENT_TYPE.create);
 	}
-function Func_UIE_create_struct(_constructor=-1,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,_points_or_List,_list_o_x1,_y1,_pointsInf)
-	{
+function Func_UIE_create_struct(_constructor=Constructor_UI_element, _group, _text,_selectable, _create_func=-1, _step_func=-1, _draw_func=-1, _points_or_list, _num_or_index, _x1, _y1)
+	{//											0						1		2		3				4				5				6				7				8		9	10
+	#region INFO
 	/*
-	NOT FOR USE IN CODE ONLY IN RESPECTIVE FUNTIONS
+	
+	_points_or_list		| bool	| true -> list of points in following arguments / false -> list index in next argument
+	_num_or_index		| val	| Number of points means: Number of point Pairs f.e. x1 & y1 -> 1 Point | x1,y1,x2,y2,x3,y3 -> 3 Points
 	
 	
-	_points_or_List		| bool	| true -> list of points in folliwing arguments / false -> list index in next argument
+	--------------CUSTOMIZABILITY-----------------
+	
+	This script will automatically give all additional arguments over into the provided constructor with the base arguments seen above
+	
+	
+	providing additional argumentns for this function :
+		you can add them after all the nessesary arguemtns seen above
+	
+		!!!! BUT !!!!
+		beware of the variable amount of point variables that can be supplied.
+		Either way sure to use the _points_or_list, _num_or_index and number of points correctly.
+		the system can handle both varying number of arguments.
+	
+	
+	to be exact these variables are:
+		id				=	id of creating object, used to reference as a "motheer" object
+		_group			=	description provided in create function
+		_text			=	description provided in create function
+		_selectable		=	description provided in create function
+		_create_func	=	description provided in create function
+		_step_func		=	description provided in create function
+		_draw_func		=	description provided in create function
+		_point_list		=	ds_list | a list containing all given points in pairs.
+	
+		+ [aditional arguments] = whatever you want :)
 	
 	*/
-	
+	#endregion
 	#region convert points to point list
 	var _point_list;
-	switch(_points_or_List)
+	switch(_points_or_list)
 		{
 		case true:
 			//make point list
 			_point_list = ds_list_create();
-			var _num = argument_count;
-			for (var i=7;i<_num;i++)
+			var ii;
+			for (var i=0;i<_num_or_index;i++)
 				{
-				ds_list_add(_point_list,argument[i]);
+				ii = 9 + i * 2;
+				ds_list_add(_point_list,argument[ii		]);
+				ds_list_add(_point_list,argument[ii + 1	]);
 				}
 		break;
 		case false:
 			//is aalready a list
-			_point_list = _list_o_x1;
+			_point_list = _num_or_index;
 		break;
 		}
 	#endregion
 	
-	//give base constructor
-	if _constructor==-1
-		_constructor = Constructor_UI_element;
+	var _inst;
+	#region varibale args
 	
+	//convert arg into list if more than 6 (standart arg number)
 	
-	var _inst = new _constructor(id,_group,_text,_create_func,_step_func,_draw_func,_point_list);
+	var norm_arg_num = 9 + (_points_or_list * _num_or_index*2);
+	
+	if argument_count > norm_arg_num
+		{
+		show_debug_message("NEW CONSTRUCTOR SYSTEM USED | Func_UIE_create_struct inf arg constructor");
+		
+		var _list = ds_list_create();
+		//add insert
+		ds_list_add(_list, id);
+		//add custom
+		for (var i = 1; i<6; i++)//until including arg 6
+			{
+			ds_list_add(_list,argument[ i]);
+			}
+		//add point list
+		ds_list_add(_list, _point_list);
+		//add custom
+		for (var i = norm_arg_num-1; i<argument_count; i++)
+			{
+			ds_list_add(_list,argument[ i]);
+			}
+		//will this work?
+		_inst = new script_execute_ext(_constructor,_list);
+		ds_list_destroy(_list);
+		}
+	#endregion
+	#region base args
+	else
+		_inst = new _constructor(id,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list);
+	#endregion
 	
 	//add to group list
-	ds_list_add(UI_group_grid[# UI_GROUP_INDEX.element_list, _group], _inst);
+	Func_UI_group_manual_addElement(_group,_inst);
 	
 	//set stuff only here can be done
 	with(_inst)
 		{
 		index = _inst;
-		/* for some reason the struct has no ID or if an insatnce actrs through the strucs the "id", if not set, will be the id of the operating object
+		/* for some reason the struct has no ID or if an insatnce acts through the strucs the "id", if not set, will be the id of the operating object
 		// this causes a bunch of identification problems
+		// this is the only way to supply the instance with its own id
 		*/
 		}
 	
 	//return
 	return _inst;
 	}
-
+#endregion
+#region Group Constructor
+function Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
+	{
+	/*
+	NOT FOR USE IN CODE ONLY IN RESPECTIVE FUNTION Func_UIG_create_struct
+	Function referencing this constructor performs necessary setup that this constructor cant provide
+	*/
+	index = undefined; //my index | id
+	menu = _menu;
+	
+	enabled =	_enabled;			// bool		| if the group is visible and active
+	progress =	_progress;			// val		| starting progress
+	time =		_time;				// val		| the time it takes to deactivate the group
+	trans =		_progress / _time;	// mult		| 0-1 of transition / startup time
+	dis_step =	_dis_step;			// bool		| if the group will still run its x event when:		disabled but time not 0
+	dis_draw =	_dis_draw;			// bool		| if the group will still run its draw event when:	disabled but time not 0
+	element_list = ds_list_create();// ds_list	| ds_list of all elements in the group
+	
+	
+	
+	}
+function Func_UIG_create_struct(_constructor=Constructor_UI_group,_enabled,_progress,_time,_dis_step,_dis_draw)
+	{
+	/*
+	NOT FOR USE IN CODE ONLY IN RESPECTIVE FUNTIONS
+	Functions referencing this constructor performs necessary setup that this constructor cant provide
+	*/
+	#region INFO
+	
+	/*
+	
+	--------------CUSTOMIZABILITY-----------------
+	
+	This script will automatically give all additional arguments over into the provided constructor with the base arguments seen above
+	
+	
+	providing additional argumentns for this function :
+		you can add them after all the nessesary arguemtns seen above
+	
+	to be exact these variables are:
+		id			=	id of creating object, used to reference as a "motheer" object
+		_enabled	=	description provided in create function
+		_progress	=	description provided in create function
+		_time		=	description provided in create function
+		_dis_step	=	description provided in create function
+		_dis_draw	=	description provided in create function
+	
+		+ [aditional arguments] = whatever you want :)
+	*/
+	#endregion
+	
+	var _inst;
+	#region varibale args
+	
+	//convert arg into list if more than 6 (standart arg number)
+	if argument_count > 6
+		{
+		show_debug_message("NEW CONSTRUCTOR SYSTEM USED | Func_UIG_create_struct inf arg constructor");
+		
+		var _list = ds_list_create();
+		//add insert
+		ds_list_add(_list, id);
+		
+		//add rest
+		for (var i=1;i<argument_count;i++)
+			{
+			ds_list_add(_list,argument[ i]);
+			}
+		
+		//will this work?
+		_inst = new script_execute_ext(_constructor,_list);
+		ds_list_destroy(_list);
+		}
+	#endregion
+	#region base args
+	else
+		_inst = new _constructor(id,_enabled,_progress,_time,_dis_step,_dis_draw);
+	#endregion
+	
+	//non constructor setup
+	with(_inst)
+		{
+		index = _inst;
+		/* for some reason the struct has no ID or if an insatnce acts through the strucs the "id", if not set, will be the id of the operating object
+		// this causes a bunch of identification problems
+		// this is the only way to supply the instance with its own id
+		*/
+		}
+	
+	ds_list_add(UI_group_list,_inst);
+	
+	return _inst;
+	}
+#endregion
 #endregion
 
+
+#region functions
 /////////usables///////////////
-//elements
-function Func_UI_add_element(_constructor=-1,_group,_x1,_y1,_x2,_y2,_text,_create_func=-1,_step_func=-1,_draw_func=-1)
+///////elements
+//easy create
+function Func_UI_add_element(_constructor=Constructor_UI_element,_group,_x1,_y1,_x2,_y2,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1)			//create element from rectanlge x,y coords
 	{
 	/*
 	_constructor| constructor	| index of the custom contructor ro leave empty
@@ -267,9 +456,13 @@ function Func_UI_add_element(_constructor=-1,_group,_x1,_y1,_x2,_y2,_text,_creat
 	_step_func	| function		| the function to call in the step event	or -1 for no function
 	
 	*/
-	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,true,_x1,_y1,_x2,_y1, _x2,_y2,_x1,_y2);
+	return Func_UIE_create_struct(_constructor,_group,_text,_selectable,_create_func,_step_func,_draw_func,true,4,
+	_x1,_y1,   //top	left
+	_x2,_y1,   //top	right
+	_x2,_y2,   //bottom	right
+	_x1,_y2);  //bottom	left
 	}
-function Func_UI_add_element_ext(_constructor=-1,_group,_x,_y,_w,_h,_r,_text,_create_func=-1,_step_func=-1,_draw_func=-1)
+function Func_UI_add_element_ext(_constructor=Constructor_UI_element,_group,_x,_y,_w,_h,_r,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1)		//create element from extended position arguments
 	{
 	/*
 	_constructor| constructor	| index of the custom contructor ro leave empty
@@ -306,9 +499,13 @@ function Func_UI_add_element_ext(_constructor=-1,_group,_x,_y,_w,_h,_r,_text,_cr
 	var _x4 = _x + lengthdir_x(_dist,_dir);
 	var _y4 = _y + lengthdir_y(_dist,_dir);
 	
-	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,true,_x1,_y1,_x2,_y2,_x3,_y3,_x4,_y4);
+	return Func_UIE_create_struct(_constructor,_group,_text,_selectable,_create_func,_step_func,_draw_func,true,4,
+	_x1,_y1,
+	_x2,_y2,
+	_x3,_y3,
+	_x4,_y4);
 	}
-function Func_UI_add_element_poly(_constructor=-1,_group,_text,_create_func=-1,_step_func=-1,_draw_func=-1,coords)
+function Func_UI_add_element_poly(_constructor=Constructor_UI_element,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,coords)				//create element from supplied coordinate pairs
 	{
 	/*
 	_constructor| constructor	| index of the custom contructor ro leave empty
@@ -326,36 +523,62 @@ function Func_UI_add_element_poly(_constructor=-1,_group,_text,_create_func=-1,_
 	
 	//convert points to list
 	var _list = ds_list_create();
-	for (var i=6;i<argument_count;i++)
+	for (var i=7;i<argument_count;i++)
 		{
 		ds_list_add(_list,argument[i]);
 		}
 	
-	return Func_UIE_create_struct(_constructor,_group,_text,_create_func,_step_func,_draw_func,false,_list);
+	return Func_UIE_create_struct(_constructor,_group,_text,_selectable,_create_func,_step_func,_draw_func,false,_list);
+	}
+function Func_UI_add_element_polylist(_constructor=Constructor_UI_element,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list)	//create element from a ds_list of points | copies list
+	{
+	/*
+	_constructor| constructor	| index of the custom contructor ro leave empty
+	_group		| index			| the group the element belongs too
+	_text		| string		| the text to display
+	_create_func| function		| function that acts like an additional create event for the element	or -1 for no function
+	_step_func	| function		| the function to call in the step event	or -1 for no function
+	_draw_func	| function		| the function to call in the draw event	or -1 for no function
+	
+	_point_list | ds_list		| a list of points used for the element positions. Points must be in x & y pairs. F.e. [|0]=x1, [|2]=y1, [|3]=x2, [|4]=y2
+								| creates an independant copy of the given point list. So delete the given point list afterward if there is no need ffor it anymore.
+	*/
+	
+	//create list and copy
+	var _list = ds_list_create();
+	ds_list_copy(_list,_point_list);
+	
+	return Func_UIE_create_struct(_constructor,_group,_text,_selectable,_create_func,_step_func,_draw_func,false,_list);
 	}
 
-function Func_UI_delete_element(_struct_index)
+function Func_UI_delete_element(_element_index)
 	{
-	delete _struct_index;
+	with(_element_index)
+		{
+		ds_list_destroy(point_list);
+		}
+	
+	delete _element_index;
 	}
 
-function Func_UI_callevent(_struct_index,_event_index)
+function Func_UI_callevent(_element_index,_event_index)
 	{
-	_struct_index.func_UIES_doEvent(_event_index)
+	with(_element_index) func_UIES_doEvent(_event_index);
 	}
 function Func_UI_groupcallevent(_group_index,_event_index)
 	{
 	//go through all elements in one group and call event given
-	var _list = UI_group_grid[# UI_GROUP_INDEX.element_list, _group_index];
-	var _size = ds_list_size(_list)
+	var _list = _group_index.element_list;
+	var _size = ds_list_size(_list);
 	for(var i=0; i<_size;i++)
 		{
 		Func_UI_callevent(_list[| i],_event_index);
 		}
 	}
 
-//groups
-function Func_UI_create_group(_enabled,_progress,_time,_dis_step,_dis_draw)
+///////groups
+//easy create
+function Func_UI_create_group(_constructor=Constructor_UI_group,_enabled,_progress,_time,_dis_step,_dis_draw)
 	{
 	/*
 	_enabled		| bool		| if the group is visible and active
@@ -371,32 +594,25 @@ function Func_UI_create_group(_enabled,_progress,_time,_dis_step,_dis_draw)
 	///////////////////////////////////////////////////////////////////
 	
 	*/
-	var _index = Func_DHP_grid_expand_one(UI_group_grid,false);
-	
-	UI_group_grid[# UI_GROUP_INDEX.enabled	,_index] = _enabled;
-	UI_group_grid[# UI_GROUP_INDEX.progress	,_index] = _progress;
-	UI_group_grid[# UI_GROUP_INDEX.time		,_index] = _time;
-	UI_group_grid[# UI_GROUP_INDEX.trans	,_index] = _progress / _time;
-	UI_group_grid[# UI_GROUP_INDEX.dis_step	,_index] = _dis_step;
-	UI_group_grid[# UI_GROUP_INDEX.dis_draw	,_index] = _dis_draw;
-	UI_group_grid[# UI_GROUP_INDEX.element_list	,_index] = ds_list_create();
+	var _index = Func_UIG_create_struct(_constructor,_enabled,_progress,_time,_dis_step,_dis_draw);
 	
 	return _index;
 	}
+
 function Func_UI_group_enable(_index,_bool)
 	{
 	/*
 	_index	index of the group to be changed
 	_bool	to be enabled (true) or disabled (false)
 	*/
-	UI_group_grid[# UI_GROUP_INDEX.enabled	,_index] = _bool;
+	_index.enabled = _bool;
 	}
 function Func_UI_group_is_anabled(_index)
 	{
 	/*
 	_index	index of the group to be looked at
 	*/
-	return UI_group_grid[# UI_GROUP_INDEX.enabled	,_index];
+	return _index.enabled;
 	}
 function Func_UI_group_switch(_index)
 	{
@@ -405,14 +621,53 @@ function Func_UI_group_switch(_index)
 	*/
 	Func_UI_group_enable(_index, !Func_UI_group_is_anabled(_index));
 	}
+function Func_UI_group_get_Elist(_index)
+	{
+	/*
+	_index	index of the group to be looked at
+	*/
+	return _index.element_list;
+	}
+function Func_UI_group_manual_addElement(_group_index,_element) //adds list to group manuall | creating an element should add element automatically to given group
+	{
+	/*
+	_index	index of the group to be looked at
+	*/
+	with(_group_index) ds_list_add(element_list, _element);
+	}
+
+function Func_UI_delete_group(_struct_index, _clean_elements)//deletes and cleans the group struct
+	{
+	with(_struct_index)
+		{
+		
+		//clean elements?
+		if _clean_elements
+			{
+			var _size = ds_list_size(element_list)
+			for(var i=0; i<_size;i++)
+				{
+				//delete element
+				Func_UI_delete_element( element_list[| i]);
+				}
+			}
+		
+		ds_list_destroy(element_list);
+		}
+	
+	delete _struct_index;
+	}
 
 //needs to be done every step event
 function Func_UI_step(_master_x,_master_y)
 	{
 	Func_UI_group_calc();
 	
-	var _height = ds_grid_height(UI_group_grid)
-	for(var i=0; i<_height;i++)
+	var _group;
+	var _size = ds_list_size(UI_group_list)
+	for(var i=0; i<_size;i++)
+		{
+		_group = UI_group_list[| i];
 		#region info
 		/*
 		| enabled| display	| p > 0	 | wanted |
@@ -436,58 +691,67 @@ function Func_UI_step(_master_x,_master_y)
 		*/
 		#endregion
 		//if group should be active
-		if UI_group_grid[# UI_GROUP_INDEX.enabled, i] or (UI_group_grid[# UI_GROUP_INDEX.dis_step, i] and (UI_group_grid[# UI_GROUP_INDEX.progress, i] > 0))
+		if _group.enabled or (_group.dis_step and (_group.progress > 0))
 			{
-			Func_UI_groupcallevent(i,UI_ELEMENT_EVENT_TYPE.step);
+			Func_UI_groupcallevent(_group,UI_ELEMENT_EVENT_TYPE.step);
 			}
+		}
 	}
 
 //needs to be done every draw event
 function Func_UI_draw(_master_x,_master_y)
 	{
-	var _height = ds_grid_height(UI_group_grid)
-	for(var i=0; i<_height;i++)
+	var _group;
+	var _size = ds_list_size(UI_group_list)
+	for(var i=0; i<_size;i++)
+		{
+		_group = UI_group_list[| i];
 		//if group should be active
-		if UI_group_grid[# UI_GROUP_INDEX.enabled, i] or (UI_group_grid[# UI_GROUP_INDEX.dis_draw, i] and (UI_group_grid[# UI_GROUP_INDEX.progress, i] > 0))
+		if _group.enabled or (_group.dis_draw and (_group.progress > 0))
 			{
-			Func_UI_groupcallevent(i,UI_ELEMENT_EVENT_TYPE.draw);
+			Func_UI_groupcallevent(_group,UI_ELEMENT_EVENT_TYPE.draw);
 			}
+		}
 	}
+
+/////clean up///////
 
 //put into cleanup event
-function Func_UI_cleanup()
+function Func_UI_deinitialize() //destroys all vcreated data structures but not the base systems / resets to default
 	{
-	var _height = ds_grid_height(UI_group_grid)
-	for(var i=0; i<_height;i++)
+	Func_UI_cleanup();
+	Func_UI_cleanbase();
+	}
+
+function Func_UI_cleanup() //destroys all vcreated data structures but not the base systems / resets to default
+	{
+	var _size = ds_list_size(UI_group_list)
+	for(var i=0; i<_size;i++)
 		{
-		var _list = UI_group_grid[# UI_GROUP_INDEX.element_list, i]
-		var _size = ds_list_size(_list)
-		for(var ii=0; ii<_size;ii++)
-			{
-			Func_UI_delete_element( _list[| ii]);
-			}
-		
-		ds_list_destroy(_list);
+		Func_UI_delete_group(UI_group_list[| i], true);//cleans group and all elements
 		}
 	
-	ds_grid_destroy(UI_group_grid);
+	//clean list
+	ds_list_clear(UI_group_list);
+	}
+function Func_UI_cleanbase() //destroys all vcreated data structures but not the base systems / resets to default
+	{
+	ds_list_destroy(UI_group_list);
 	}
 
-///////////////NOT usables////////////////
+#endregion
+#region ///////////////NOT usables////////////////
+
 function Func_UI_group_calc()
 	{
-	var _height = ds_grid_height(UI_group_grid)
-	for (var i=0;i<_height;i++)
+	var _size = ds_list_size(UI_group_list)
+	for (var i=0;i<_size;i++)
+	with(UI_group_list[| i])
 		{
-		var _enable = UI_group_grid[# UI_GROUP_INDEX.enabled	,i];
-		var _time = UI_group_grid[# UI_GROUP_INDEX.time		,i];
-		var _val = UI_group_grid[# UI_GROUP_INDEX.progress		,i];
-		
-		_val = clamp(_val + Func_t_span(_enable),0,_time);
-		
-		UI_group_grid[# UI_GROUP_INDEX.progress	,i] = _val;
-		UI_group_grid[# UI_GROUP_INDEX.trans	,i] = _val / _time;
+		progress = clamp(progress + Func_t_span(enabled),0,time);
+		trans		= progress / time;
 		}
 	}
 
 
+#endregion
