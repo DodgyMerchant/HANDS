@@ -93,3 +93,14 @@ function Func_chance100(_chance)
 	{
 	return random(100) < _chance;
 	}
+
+//screen translaations
+
+
+
+function Func_set_mouse(_x,_y)
+	{
+	window_mouse_set(	_x * (view_wport[0] / camera_get_view_width(view_camera[0])),
+						_y * (view_hport[0] / camera_get_view_height(view_camera[0])));
+	}
+	

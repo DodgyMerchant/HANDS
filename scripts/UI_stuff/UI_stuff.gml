@@ -76,6 +76,7 @@ function Func_button_draw_main()
 	
 	draw_text_transformed(_x, _y, text, 1, 1, _r mod 180 - 90);
 	#endregion
+	
 	}
 
 function Func_menu_group_switch(_g1,_g2)
@@ -129,9 +130,10 @@ function Func_create_menu_element(_reset=false, _rot_start = undefined, _sep = u
 	}
 
 
+//UI groups
+//custom constructors stuff
 
-//inherit constructors stuff
-function Func_UIP_create_group_orient(_enabled,_progress,_time,_dis_step,_dis_draw ,_orient_x, _orient_y, _orient_r)
+function Func_UIGP_create_struct_orient(_enabled,_progress,_time,_dis_step,_dis_draw ,_orient_x, _orient_y, _orient_r)
 	{
 	/*
 	_enabled		| bool		| if the group is visible and active
@@ -140,6 +142,9 @@ function Func_UIP_create_group_orient(_enabled,_progress,_time,_dis_step,_dis_dr
 	_dis_step		| bool		| if the group will still run its x event when:		disabled but time not 0
 	_dis_draw		| bool		| if the group will still run its draw event when:	disabled but time not 0
 	
+	
+	
+	
 	///////////////////////////////////////////////////////////////////
 	
 	RETURN
@@ -147,7 +152,12 @@ function Func_UIP_create_group_orient(_enabled,_progress,_time,_dis_step,_dis_dr
 	///////////////////////////////////////////////////////////////////
 	
 	*/
-	var _index = Func_UIG_create_struct(Constructor_UIP_group_orient,_enabled,_progress,_time,_dis_step,_dis_draw ,_orient_x, _orient_y, _orient_r);
 	
-	return _index;
+	//else 
+	var _inst = new Constructor_UIP_group_orient(id,_enabled,_progress,_time,_dis_step,_dis_draw	,_orient_x, _orient_y, _orient_r);
+	
+	//necessary post constructor work
+	Func_UIG_post_constructor(_inst,UI_GROUP_INDEX.orientate);
+	
+	return _inst;
 	}

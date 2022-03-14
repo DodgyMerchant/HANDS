@@ -4,12 +4,16 @@
 // Inherit the parent event
 event_inherited();
 
+ori_speed = 2;
 
 #region variables
 
 
 //general menu stuff
 group_speed = global.Game_speed * 0.3;
+
+
+//select movement
 
 
 //display variation
@@ -235,7 +239,7 @@ function Constructor_UIP_element				(_menu,_group,_text,_selectable,_create_func
 		/////
 		
 		*/
-		func_UIESP_pos_set_coordinates(
+		func_UIESP_pos_change_all(
 		x1 + _shiftx,
 		y1 + _shifty,
 		x2 + _shiftx,
@@ -302,7 +306,7 @@ function Constructor_UIP_element				(_menu,_group,_text,_selectable,_create_func
 		
 		func_UIESP_pos_change_all(x1,y1,x2,y2,x3,y3,x4,y4);
 		}
-	static func_UIESP_set_text = function(_str, calc_dist)//recalculates and sets the begin points given _distance away from the end points
+	static func_UIESP_set_text = function(_str, calc_dist=0)//recalculates and sets the begin points given _distance away from the end points
 		{
 		/*
 		calc_dist = 0,1,2 | 0=false no calc | 1 = set end points | 2 = set begin points
@@ -315,7 +319,7 @@ function Constructor_UIP_element				(_menu,_group,_text,_selectable,_create_func
 		switch(calc_dist)
 			{
 			case 1: func_UIESP_pos_set_enddistance(text_leng); break;
-			case 2:func_UIESP_pos_set_begindistance(text_leng); break;
+			case 2: func_UIESP_pos_set_begindistance(text_leng); break;
 			}
 		}
 	
@@ -339,22 +343,22 @@ function Constructor_UIP_element_orient_begin	(_menu,_group,_text,_selectable,_c
 	}
 
 
-function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) : Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
+function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_dis_draw,	_orient_x, _orient_y, _orient_r, _hover) : Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
 	{
 	/*
 	supply an orientation variable
 	
 	*/
 	
+	orientation = 0;
 	orient_x = _orient_x;
 	orient_y = _orient_y;
 	orient_r = _orient_r;
+	ori_hover = _hover; //hover triggers ori or click
 	
-	static func_UIGSPO_orientate = function(_element_index)//changes and updates all position and helper variables
+	
+	static func_UIGSPO_rot_elements = function(_r)//changes and updates all position and helper variables | returns value moved
 		{
-		
-		var _r = angle_difference(orient_r,_element_index.rot);
-		
 		var _size = ds_list_size(element_list)
 		for(var i=0; i<_size;i++)
 			{
@@ -364,7 +368,24 @@ function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_
 				func_UIESP_pos_update_all();
 				}
 			}
+		
+		orientation += _r;
+		
 		}
+	static func_UIGSPO_orientate = function(_element_index,_val)//changes and updates all position and helper variables | returns value moved
+		{
+		var _r = angle_difference(orient_r,_element_index.rot);
+		_r = min(abs(_r),_val) * sign(_r);
+		
+		func_UIGSPO_rot_elements(_r);
+			
+		return _r;//return value moved
+		}
+	static func_UIGSPO_reset = function()//changes and updates all position and helper variables | returns value moved
+		{
+		func_UIGSPO_rot_elements(-orientation);
+		}
+	
 	}
 
 

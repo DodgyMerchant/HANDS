@@ -311,7 +311,7 @@ func_button_int_options = function()
 #region main
 
 //manu_group_main = Func_UI_create_group(,true,0,group_speed,false,true);
-manu_group_main = Func_UIP_create_group_orient(true,0,group_speed,false,true,global.Game_point_x,global.Game_point_y,180);
+manu_group_main = Func_UIGP_create_struct_orient(true,0,group_speed,false,true,global.Game_point_x,global.Game_point_y,0);
 							Func_create_menu_element(true,175,20,10,	Constructor_UIP_element_orient_end,manu_group_main,"Start"		,true,,func_button_int_start,			Func_button_draw_main);
 							Func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Options"	,true,,func_button_int_switch_options,	Func_button_draw_main);
 							Func_create_menu_element(,,,,				Constructor_UIP_element_orient_end,manu_group_main,"Exit"		,true,,func_button_int_end,				Func_button_draw_main);
