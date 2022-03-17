@@ -32,7 +32,7 @@
     "path": "folders/hand.yy",
   },
   "resourceVersion": "1.0",
-  "name": "obj_hand",
+  "name": "obj_hands",
   "tags": [],
   "resourceType": "GMObject",
 }

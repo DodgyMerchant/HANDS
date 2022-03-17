@@ -1,6 +1,6 @@
 {
   "resources": [
-    {"id":{"name":"obj_hand","path":"objects/obj_hand/obj_hand.yy",},"order":0,},
+    {"id":{"name":"obj_hands","path":"objects/obj_hands/obj_hands.yy",},"order":3,},
     {"id":{"name":"Debug","path":"scripts/Debug/Debug.yy",},"order":3,},
     {"id":{"name":"Surface_Handling","path":"scripts/Surface_Handling/Surface_Handling.yy",},"order":0,},
     {"id":{"name":"ac_gendisp_vari","path":"animcurves/ac_gendisp_vari/ac_gendisp_vari.yy",},"order":4,},

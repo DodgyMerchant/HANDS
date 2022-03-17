@@ -529,7 +529,7 @@ func_game_stop = function()//stops the game play mode
 	}
 func_game_round_reset = function() //resets the vars to    //MUST BE PLAYABLE STATE
 	{
-	with(obj_hand) func_end();
+	with(obj_hands) func_end();
 	
 	action_type = -1;
 	action_inst = -1;
@@ -578,7 +578,7 @@ func_hand_create = function(_type,_x,_y)
 	{
 	//*
 	show_debug_message("Before hand");
-	var _inst = instance_create_layer(_x,_y,global.Layer_hand,obj_hand);
+	var _inst = instance_create_layer(_x,_y,global.Layer_hand,obj_hands);
 	show_debug_message("Hand created");
 	with(_inst)
 		{
