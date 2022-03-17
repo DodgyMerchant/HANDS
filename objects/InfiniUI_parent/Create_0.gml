@@ -8,6 +8,40 @@ InfiniUI_system();
 
 #endregion
 
+#region input
+enum MENU_CONTROL_TYPE
+	{
+	mouse,
+	buttons
+	}
+global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
+
+func_menu_check_inputtype = function()
+	{
+	if mouse_check_button(mb_any) or mouse_moved
+		global.Menu_control_type = MENU_CONTROL_TYPE.mouse;
+	else if keyboard_check(vk_anykey) or Func_input_all_gp_any()!=-1
+		global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
+	}
+
+#region mouse input
+
+mouse_xlast = mouse_x;
+mouse_ylast = mouse_y;
+mouse_moved = false;
+
+func_mouse_check_moved = function()
+	{
+	mouse_moved = mouse_xlast != mouse_x or mouse_ylast != mouse_y;
+	
+	mouse_xlast = mouse_x;
+	mouse_ylast = mouse_y;
+	}
+
+#endregion
+
+
+#endregion
 
 
 

@@ -71,28 +71,9 @@ func_window_name = function()
 #endregion
 #region menu
 
-#region control type
-enum MENU_CONTROL_TYPE
-	{
-	mouse,
-	buttons
-	}
-global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
-
-func_menu_check_inputtype = function()
-	{
-	if mouse_check_button(mb_any) or mouse_moved
-		global.Menu_control_type = MENU_CONTROL_TYPE.mouse;
-	else if keyboard_check(vk_anykey) or Func_input_all_gp_any()!=-1
-		global.Menu_control_type = MENU_CONTROL_TYPE.buttons;
-	}
-
-#endregion
-
 func_menu_create = function()
 	{
 	instance_create_layer(0,0,global.Layer_menus,obj_menu);
-	
 	
 	}
 func_menu_pause_create = function()
@@ -595,14 +576,10 @@ global.LongestDistance = point_distance(0,0,global.Game_point_x,global.Game_poin
 
 func_hand_create = function(_type,_x,_y)
 	{
-	/*
-	//old hand destroy of traveled
-	if instance_exists(obj_hand)
-		with(obj_hand)
-			if tics_count == tics
-				func_hand_dim();
-	//*/
+	//*
+	show_debug_message("Before hand");
 	var _inst = instance_create_layer(_x,_y,global.Layer_hand,obj_hand);
+	show_debug_message("Hand created");
 	with(_inst)
 		{
 		image_index = _type;
@@ -611,6 +588,7 @@ func_hand_create = function(_type,_x,_y)
 		}
 	
 	return _inst;
+	//*/
 	}
 
 func_type_logic = function(_attacker,_target)	//returns true if attacker wins and false if not /-1 for nothing
@@ -663,6 +641,8 @@ action_player = -1;//the player that played last action
 
 func_game_player_action = function(_type,_player)
 	{
+	
+	
 	switch(_type)
 		{
 		#region hand action
@@ -694,6 +674,8 @@ func_game_player_action = function(_type,_player)
 			{
 			player = _player;
 			}
+		
+		show_debug_message("game player action hand");
 		
 		#region camera kick
 		
@@ -871,7 +853,7 @@ func_game_rule_timer_up = function()//when timer runs out
 	
 	*/
 	//sound
-	func_audio_play(-1,sfx_time_time_over,true,false);
+	Func_audio_play(-1,sfx_time_time_over,true,false);
 	
 	//-score to other player
 	func_game_score(!action_player,0);
@@ -1003,21 +985,7 @@ rumble!!
 
 gamepad_set_vibration(device, left_motor, right_motor);
 */
-#region mouse input
 
-mouse_xlast = mouse_x;
-mouse_ylast = mouse_y;
-mouse_moved = false;
-
-func_mouse_check_moved = function()
-	{
-	mouse_moved = mouse_xlast != mouse_x or mouse_ylast != mouse_y;
-	
-	mouse_xlast = mouse_x;
-	mouse_ylast = mouse_y;
-	}
-
-#endregion
 #region gamepad
 
 global.Input_gp_list = ds_list_create();
@@ -1716,7 +1684,7 @@ var _list = 100;
 audio_listener_position(global.Game_point_x, global.Game_point_y, -_list);
 
 
-func_audio_play = function(_emit,_snd,_stop,_loop,_manprio)
+function Func_audio_play(_emit,_snd,_stop,_loop,_manprio=undefined)
 	{
 	//plays a sound, automatically sets priority
 	/*
@@ -1748,7 +1716,7 @@ func_audio_play = function(_emit,_snd,_stop,_loop,_manprio)
 		audio_play_sound_on(_emit,_snd,_loop,_prio);
 		}
 	*/
-	show_debug_message("!!! Audio DISABLED !!! sound played: "+string(audio_get_name(_snd)));
+	//show_debug_message("!!! Audio DISABLED !!! sound played: "+string(audio_get_name(_snd)));
 	
 	
 	}
@@ -1850,4 +1818,3 @@ func_menu_create();
 func_window_name();
 
 
-//instance_create_layer(0,0,"Menus",obj_tansition);

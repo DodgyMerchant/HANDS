@@ -14,7 +14,7 @@ group_speed = global.Game_speed * 0.3;
 
 
 //select movement
-
+menu_select_dist = 10;
 
 //display variation
 menu_vari_dist_min = 0.5;
@@ -331,7 +331,7 @@ function Constructor_UIP_element				(_menu,_group,_text,_selectable,_create_func
 	#endregion
 	#endregion
 	}
-function Constructor_UIP_element_orient_end	(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list) constructor
+function Constructor_UIP_element_orient_end		(_menu,_group,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1,_point_list) : Constructor_UIP_element	(_menu,_group,_text,_selectable,_create_func,_step_func,_draw_func,_point_list) constructor
 	{
 	func_UIESP_pos_set_begindistance(max(text_leng,3));//if text is "" setting the width to 0 effectivly deletes the rotation of the element as the begin, end and mid will be ontop of each other.
 	//func_UIESP_pos_set_begindistance(text_leng);
@@ -342,8 +342,7 @@ function Constructor_UIP_element_orient_begin	(_menu,_group,_text,_selectable,_c
 	//func_UIESP_pos_set_enddistance(text_leng);
 	}
 
-
-function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_dis_draw,	_orient_x, _orient_y, _orient_r, _hover) : Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
+function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_dis_draw,	_orient_x, _orient_y, _orient_r) : Constructor_UI_group(_menu,_enabled,_progress,_time,_dis_step,_dis_draw) constructor
 	{
 	/*
 	supply an orientation variable
@@ -354,7 +353,7 @@ function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_
 	orient_x = _orient_x;
 	orient_y = _orient_y;
 	orient_r = _orient_r;
-	ori_hover = _hover; //hover triggers ori or click
+	//ori_hover = _hover; //hover triggers ori or click
 	
 	
 	static func_UIGSPO_rot_elements = function(_r)//changes and updates all position and helper variables | returns value moved
@@ -387,6 +386,5 @@ function Constructor_UIP_group_orient(_menu,_enabled,_progress,_time,_dis_step,_
 		}
 	
 	}
-
 
 #endregion

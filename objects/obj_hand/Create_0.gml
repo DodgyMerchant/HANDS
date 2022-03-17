@@ -1,7 +1,8 @@
 /// @desc 
 
-image_speed = 0;
+show_debug_message("Hand create event start");
 
+image_speed = 0;
 
 player = -1;
 spd = 0;
@@ -15,6 +16,7 @@ dim = false;
 end_self = false;
 start_x = xstart;
 start_y = ystart;
+
 
 
 func_hand_dim = function()

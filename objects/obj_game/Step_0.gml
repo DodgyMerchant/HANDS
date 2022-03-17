@@ -104,7 +104,7 @@ if global.Rule_Timer
 	
 	
 	if timer_start  and  global.Timer_index != timer_tick_num  and  global.Timer_index_t==0
-		func_audio_play(-1,sfx_time_tick,true,false);
+		Func_audio_play(-1,sfx_time_tick,true,false);
 	
 	#endregion
 	

@@ -63,7 +63,6 @@ _y = func_debug_txt(0,_y,
 "menu_selected: "+string(InfiniUI_parent.menu_selected),
 "global.Menu_control_type: "+string(global.Menu_control_type),
 
-
 );
 
 

@@ -1,7 +1,9 @@
 
 
+//menu input
 
-menu_vari_dist = lerp(menu_vari_dist_min, menu_vari_dist_max, global.Game_Score_t);
+func_mouse_check_moved();
+func_menu_check_inputtype(); //global.Menu_control_type
 
 
 

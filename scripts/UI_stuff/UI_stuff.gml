@@ -85,46 +85,47 @@ function Func_menu_group_switch(_g1,_g2)
 	Func_UI_group_switch(_g2);
 	}
 
-function Func_menu_create_button_halo(_constructor,_group,_r,_w,_h,_distance,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1)//cerates button in a halo manner
+function Func_menu_create_button_halo(_constructor,_group,_ox,_oy,_r,_w,_h,_distance,_text,_selectable,_create_func=-1,_step_func=-1,_draw_func=-1)//cerates button in a halo manner
 	{
 	/*
 	_r = degree relative zur mitte. 0=rechts.
 	
 	*/
-	
 	var _r2 = _r;
 	_r = _r + 180;//reverse | 0
 	
-	var _x = lengthdir_x((_w*.5) + _distance,_r2) + global.Game_point_x;
-	var _y = lengthdir_y((_w*.5) + _distance,_r2) + global.Game_point_y;
+	var _x = lengthdir_x((_w*.5) + _distance,_r2) + _ox;//global.Game_point_x;
+	var _y = lengthdir_y((_w*.5) + _distance,_r2) + _oy;//global.Game_point_y;
 	
 	return Func_UI_add_element_ext(_constructor,_group,_x,_y,_w,_h,_r,_text,_selectable,_create_func,_step_func,_draw_func)
 	}
 
-function Func_create_menu_element(_reset=false, _rot_start = undefined, _sep = undefined, _dist = undefined, _constructor,_group,_text,_selectable=false,_create_func=-1,_step_func=-1,_draw_func=-1)
+function Func_create_menu_element(_reset=false, _rot_start=undefined, _x=undefined, _y=undefined, _sep=undefined, _dist=undefined, _constructor,_group,_text,_selectable=false,_create_func=-1,_step_func=-1,_draw_func=-1)
 	{
 	static _element_rot = _rot_start;
 	static _element_sep = _sep;
-	static _element_dist = obj_game.basecircle_rad_base + sprite_get_width(spr_hand) + _dist;
+	static _element_dist = _dist;
+	static _element_x = _x;
+	static _element_y = _y;
 	
 	if _reset
 		{
-		if _rot_start	!= undefined	{_element_rot =		_rot_start;																				}
-		if _sep		!= undefined	{_element_sep =		_sep;																					}
-		if _dist		!= undefined	{_element_dist =	obj_game.basecircle_rad_base + sprite_get_width(spr_hand) + _dist;						}
+		if _rot_start	!= undefined	{_element_rot =		_rot_start;	}
+		if _sep			!= undefined	{_element_sep =		_sep;		}
+		if _dist		!= undefined	{_element_dist =	_dist;		}
+		if _x			!= undefined	{_element_x = _x;				}
+		if _y			!= undefined	{_element_y = _y;				}
 		}
 	
 	static _element_w = 50;
 	static _element_h = sprite_get_height(spr_hand_stretch);
 	
-	
-	
 	//create new element
-	var _element = Func_menu_create_button_halo(_constructor,_group,_element_rot,_element_w,_element_h,_element_dist,_text,_selectable,_create_func,_step_func,_draw_func);//
+	var _element = Func_menu_create_button_halo(_constructor,_group,_element_x,_element_y,_element_rot,_element_w,_element_h,_element_dist,_text,_selectable,_create_func,_step_func,_draw_func);//
 	
 	//progress
 	if _element_sep != 0		//measures direction to front bottom edge from game_point x2 as minimum element sep
-		_element_rot += max(-angle_difference(_element_rot ,point_direction(global.Game_point_x,global.Game_point_y,_element.x3,_element.y3))*2, abs(_element_sep)) * sign(_element_sep);
+		_element_rot += max(-angle_difference(_element_rot ,point_direction(_element_x,_element_y,_element.x3,_element.y3))*2, abs(_element_sep)) * sign(_element_sep);
 	
 	return _element;
 	}
