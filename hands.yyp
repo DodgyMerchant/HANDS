@@ -27,6 +27,7 @@
     {"id":{"name":"spr_keys","path":"sprites/spr_keys/spr_keys.yy",},"order":2,},
     {"id":{"name":"obj_score_points","path":"objects/obj_score_points/obj_score_points.yy",},"order":0,},
     {"id":{"name":"fn_countdown1","path":"fonts/fn_countdown1/fn_countdown1.yy",},"order":3,},
+    {"id":{"name":"obj_playerhand","path":"objects/obj_playerhand/obj_playerhand.yy",},"order":4,},
     {"id":{"name":"spr_hand_stretch","path":"sprites/spr_hand_stretch/spr_hand_stretch.yy",},"order":0,},
     {"id":{"name":"spr_hand","path":"sprites/spr_hand/spr_hand.yy",},"order":1,},
     {"id":{"name":"snd_sfx_placeholder","path":"sounds/snd_sfx_placeholder/snd_sfx_placeholder.yy",},"order":2,},
